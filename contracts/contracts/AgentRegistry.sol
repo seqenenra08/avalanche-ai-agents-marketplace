@@ -232,4 +232,12 @@ contract AgentRegistryRentable is ReentrancyGuard {
     function getRental(uint256 id) external view agentExists(id) returns (Rental memory) {
         return rentals[id];
     }
+
+    function getAgents() external view returns (Agent[] memory) {
+    Agent[] memory list = new Agent[](nextId - 1);
+    for (uint256 i = 1; i < nextId; i++) {
+        list[i - 1] = agents[i];
+    }
+    return list;
+}
 }
