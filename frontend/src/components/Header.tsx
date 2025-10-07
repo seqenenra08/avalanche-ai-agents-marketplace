@@ -20,7 +20,7 @@ function ConnectWalletButton() {
     <button 
       onClick={handleConnect}
       disabled={isPending}
-      className="bg-primary-600 hover:bg-primary-700 disabled:opacity-50 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center space-x-2"
+      className="bg-primary-600 hover:bg-primary-700 disabled:opacity-50 text-gray-600 px-4 py-2 rounded-lg text-sm font-medium flex items-center space-x-2 cursor-pointer hover:text-gray-900"
     >
       <Wallet className="h-4 w-4" />
       <span>{isPending ? 'Conectando...' : 'Conectar Wallet'}</span>
@@ -69,7 +69,7 @@ export function Header() {
           <div className="flex items-center space-x-4">
             {isConnected ? (
               <div className="flex items-center space-x-2">
-                <div className="flex items-center space-x-2 bg-gray-100 rounded-lg px-3 py-2">
+                <div className="flex items-center space-x-2 bg-gray-100 rounded-lg px-3 py-2 text-gray-600">
                   <Wallet className="h-4 w-4 text-gray-600" />
                   <span className="text-sm font-medium text-gray-900">
                     {formatAddress(address!)}

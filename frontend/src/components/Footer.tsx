@@ -6,7 +6,6 @@ export function Footer() {
     <footer className="bg-gray-900 text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          {/* Logo y descripción */}
           <div className="col-span-1 md:col-span-2">
             <div className="flex items-center space-x-2 mb-4">
               <Bot className="h-8 w-8 text-primary-400" />
@@ -18,6 +17,7 @@ export function Footer() {
             </p>
             <div className="flex space-x-4">
               <a 
+                title='GitHub'
                 href="https://github.com" 
                 className="text-gray-400 hover:text-white"
                 target="_blank"
@@ -26,6 +26,7 @@ export function Footer() {
                 <Github className="h-6 w-6" />
               </a>
               <a 
+                title='Twitter'
                 href="https://twitter.com" 
                 className="text-gray-400 hover:text-white"
                 target="_blank"
@@ -63,7 +64,6 @@ export function Footer() {
             </ul>
           </div>
 
-          {/* Información de red */}
           <div>
             <h3 className="text-lg font-semibold mb-4">Red</h3>
             <ul className="space-y-2">
