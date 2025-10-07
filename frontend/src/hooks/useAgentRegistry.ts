@@ -1,0 +1,275 @@
+import { useReadContract, useWriteContract, useWaitForTransactionReceipt } from 'wagmi'
+import { parseEther, formatEther, type Address } from 'viem'
+import { AGENT_REGISTRY_ABI } from '@/contracts/AgentRegistry'
+
+// Dirección del contrato (actualizar cuando se despliegue)
+const AGENT_REGISTRY_ADDRESS = process.env.NEXT_PUBLIC_AGENT_REGISTRY_ADDRESS as Address || '0x0000000000000000000000000000000000000000'
+
+// Tipos
+export interface Agent {
+  id: bigint
+  owner: Address
+  ipfsHash: string
+  score: bigint
+  pricePerSecond: bigint
+  available: boolean
+  createdAt: bigint
+}
+
+export interface Rental {
+  renter: Address
+  startAt: bigint
+  endAt: bigint
+  pricePaid: bigint
+}
+
+// Hook para leer un agente por ID
+export function useAgent(id: number) {
+  return useReadContract({
+    address: AGENT_REGISTRY_ADDRESS,
+    abi: AGENT_REGISTRY_ABI,
+    functionName: 'getAgent',
+    args: [BigInt(id)],
+    query: {
+      enabled: id > 0
+    }
+  })
+}
+
+// Hook para verificar si un agente está rentado
+export function useIsAgentRented(id: number) {
+  return useReadContract({
+    address: AGENT_REGISTRY_ADDRESS,
+    abi: AGENT_REGISTRY_ABI,
+    functionName: 'isRented',
+    args: [BigInt(id)],
+    query: {
+      enabled: id > 0
+    }
+  })
+}
+
+// Hook para obtener información de renta
+export function useAgentRental(id: number) {
+  return useReadContract({
+    address: AGENT_REGISTRY_ADDRESS,
+    abi: AGENT_REGISTRY_ABI,
+    functionName: 'getRental',
+    args: [BigInt(id)],
+    query: {
+      enabled: id > 0
+    }
+  })
+}
+
+// Hook para obtener tiempo restante de renta
+export function useRentalTimeRemaining(id: number) {
+  return useReadContract({
+    address: AGENT_REGISTRY_ADDRESS,
+    abi: AGENT_REGISTRY_ABI,
+    functionName: 'rentalTimeRemaining',
+    args: [BigInt(id)],
+    query: {
+      enabled: id > 0,
+      refetchInterval: 30000 // Actualizar cada 30 segundos
+    }
+  })
+}
+
+// Hook para obtener balance de ganancias
+export function useOwnerBalance(address: Address) {
+  return useReadContract({
+    address: AGENT_REGISTRY_ADDRESS,
+    abi: AGENT_REGISTRY_ABI,
+    functionName: 'balances',
+    args: [address],
+    query: {
+      enabled: !!address
+    }
+  })
+}
+
+// Hook para registrar un agente
+export function useRegisterAgent() {
+  const { writeContract, data: hash, error, isPending } = useWriteContract()
+  
+  const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({
+    hash,
+  })
+
+  const registerAgent = async (ipfsHash: string, priceInAvaxPerSecond: string) => {
+    const pricePerSecond = parseEther(priceInAvaxPerSecond)
+    
+    writeContract({
+      address: AGENT_REGISTRY_ADDRESS,
+      abi: AGENT_REGISTRY_ABI,
+      functionName: 'registerAgent',
+      args: [ipfsHash, pricePerSecond],
+    })
+  }
+
+  return {
+    registerAgent,
+    hash,
+    error,
+    isPending,
+    isConfirming,
+    isConfirmed
+  }
+}
+
+// Hook para rentar un agente
+export function useRentAgent() {
+  const { writeContract, data: hash, error, isPending } = useWriteContract()
+  
+  const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({
+    hash,
+  })
+
+  const rentAgent = async (id: number, durationSeconds: number, pricePerSecond: bigint) => {
+    const totalCost = pricePerSecond * BigInt(durationSeconds)
+    
+    writeContract({
+      address: AGENT_REGISTRY_ADDRESS,
+      abi: AGENT_REGISTRY_ABI,
+      functionName: 'rentAgent',
+      args: [BigInt(id), BigInt(durationSeconds)],
+      value: totalCost,
+    })
+  }
+
+  return {
+    rentAgent,
+    hash,
+    error,
+    isPending,
+    isConfirming,
+    isConfirmed
+  }
+}
+
+// Hook para extender renta
+export function useExtendRental() {
+  const { writeContract, data: hash, error, isPending } = useWriteContract()
+  
+  const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({
+    hash,
+  })
+
+  const extendRental = async (id: number, extraSeconds: number, pricePerSecond: bigint) => {
+    const extraCost = pricePerSecond * BigInt(extraSeconds)
+    
+    writeContract({
+      address: AGENT_REGISTRY_ADDRESS,
+      abi: AGENT_REGISTRY_ABI,
+      functionName: 'extendRental',
+      args: [BigInt(id), BigInt(extraSeconds)],
+      value: extraCost,
+    })
+  }
+
+  return {
+    extendRental,
+    hash,
+    error,
+    isPending,
+    isConfirming,
+    isConfirmed
+  }
+}
+
+// Hook para cambiar precio de agente
+export function useSetAgentPrice() {
+  const { writeContract, data: hash, error, isPending } = useWriteContract()
+  
+  const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({
+    hash,
+  })
+
+  const setPrice = async (id: number, newPriceInAvaxPerSecond: string) => {
+    const newPricePerSecond = parseEther(newPriceInAvaxPerSecond)
+    
+    writeContract({
+      address: AGENT_REGISTRY_ADDRESS,
+      abi: AGENT_REGISTRY_ABI,
+      functionName: 'setPrice',
+      args: [BigInt(id), newPricePerSecond],
+    })
+  }
+
+  return {
+    setPrice,
+    hash,
+    error,
+    isPending,
+    isConfirming,
+    isConfirmed
+  }
+}
+
+// Hook para cambiar disponibilidad
+export function useSetAgentAvailability() {
+  const { writeContract, data: hash, error, isPending } = useWriteContract()
+  
+  const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({
+    hash,
+  })
+
+  const setAvailability = async (id: number, available: boolean) => {
+    writeContract({
+      address: AGENT_REGISTRY_ADDRESS,
+      abi: AGENT_REGISTRY_ABI,
+      functionName: 'setAvailability',
+      args: [BigInt(id), available],
+    })
+  }
+
+  return {
+    setAvailability,
+    hash,
+    error,
+    isPending,
+    isConfirming,
+    isConfirmed
+  }
+}
+
+// Hook para retirar ganancias
+export function useWithdrawEarnings() {
+  const { writeContract, data: hash, error, isPending } = useWriteContract()
+  
+  const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({
+    hash,
+  })
+
+  const withdrawEarnings = async () => {
+    writeContract({
+      address: AGENT_REGISTRY_ADDRESS,
+      abi: AGENT_REGISTRY_ABI,
+      functionName: 'withdrawEarnings',
+    })
+  }
+
+  return {
+    withdrawEarnings,
+    hash,
+    error,
+    isPending,
+    isConfirming,
+    isConfirmed
+  }
+}
+
+// Utilidades
+export function formatPricePerSecond(pricePerSecond: bigint): string {
+  return formatEther(pricePerSecond)
+}
+
+export function calculateRentalCost(pricePerSecond: bigint, durationSeconds: number): bigint {
+  return pricePerSecond * BigInt(durationSeconds)
+}
+
+export function formatRentalCost(pricePerSecond: bigint, durationSeconds: number): string {
+  const cost = calculateRentalCost(pricePerSecond, durationSeconds)
+  return formatEther(cost)
+}
