@@ -1,505 +1,176 @@
 'use client'
 
-import { Layout } from '@/components/Layout'
-import { Upload, Bot, AlertCircle, CheckCircle } from 'lucide-react'
 import { useState } from 'react'
+import { Layout } from '@/components/Layout'
 import { useAccount } from 'wagmi'
-import { ipfsService, type AgentMetadata } from '@/services/ipfs'
+import { parseUnits } from 'viem'
 import { useRegisterAgent } from '@/hooks/useAgentRegistry'
 
-interface AgentFormData {
-  name: string
-  description: string
-  category: string
-  price: string
-  tags: string[]
-  image: File | null
-  metadata: {
-    version: string
-    author: string
-    requirements: string[]
-    capabilities: string[]
-  }
-}
-
-export default function RegisterAgent() {
+export default function AgentForm() {
   const { address, isConnected } = useAccount()
-  const { registerAgent, isPending, isConfirming, isConfirmed, hash, error } = useRegisterAgent()
-  const [formData, setFormData] = useState<AgentFormData>({
+  const { registerAgent, isPending, isConfirming, isConfirmed, error } = useRegisterAgent()
+
+  const [formData, setFormData] = useState({
     name: '',
     description: '',
+    endpoint: '',
     category: '',
-    price: '',
-    tags: [],
-    image: null,
-    metadata: {
-      version: '1.0.0',
-      author: '',
-      requirements: [],
-      capabilities: []
-    }
+    documentation: '',
+    version: '1.0.0',
+    tags: '',
+    pricePerHour: '',
   })
-  const [currentTag, setCurrentTag] = useState('')
-  const [isUploading, setIsUploading] = useState(false)
-  const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'success' | 'error'>('idle')
-  const [ipfsCid, setIpfsCid] = useState<string | null>(null)
 
-  const categories = [
-    'Conversational',
-    'Analytics', 
-    'Creative',
-    'Finance',
-    'Healthcare',
-    'Education',
-    'Gaming',
-    'Other'
-  ]
+  const [status, setStatus] = useState<'idle' | 'uploading' | 'registering' | 'success' | 'error'>('idle')
+  const [message, setMessage] = useState('')
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
-    
-    if (name.startsWith('metadata.')) {
-      const metadataField = name.split('.')[1]
-      setFormData(prev => ({
-        ...prev,
-        metadata: {
-          ...prev.metadata,
-          [metadataField]: value
-        }
-      }))
-    } else {
-      setFormData(prev => ({
-        ...prev,
-        [name]: value
-      }))
-    }
-  }
-
-  const addTag = () => {
-    if (currentTag.trim() && !formData.tags.includes(currentTag.trim())) {
-      setFormData(prev => ({
-        ...prev,
-        tags: [...prev.tags, currentTag.trim()]
-      }))
-      setCurrentTag('')
-    }
-  }
-
-  const removeTag = (tagToRemove: string) => {
-    setFormData(prev => ({
-      ...prev,
-      tags: prev.tags.filter(tag => tag !== tagToRemove)
-    }))
-  }
-
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file) {
-      setFormData(prev => ({
-        ...prev,
-        image: file
-      }))
-    }
-  }
-
-  const uploadToIPFS = async (metadata: AgentMetadata) => {
-    try {
-      setIsUploading(true)
-      setUploadStatus('uploading')
-      
-      // Subir imagen primero si existe
-      let imageCid = null
-      if (formData.image) {
-        const imageResult = await ipfsService.uploadImage(formData.image)
-        imageCid = imageResult.cid
-      }
-
-      // Actualizar metadata con el CID de la imagen
-      const metadataWithImage = {
-        ...metadata,
-        image: imageCid
-      }
-      
-      // Subir metadatos a IPFS
-      const result = await ipfsService.uploadJSON(metadataWithImage)
-      setIpfsCid(result.cid)
-      setUploadStatus('success')
-      
-      return result.cid
-    } catch (error) {
-      console.error('Error uploading to IPFS:', error)
-      setUploadStatus('error')
-      throw error
-    } finally {
-      setIsUploading(false)
-    }
+    setFormData(prev => ({ ...prev, [name]: value }))
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
-    if (!isConnected) {
-      alert('Por favor conecta tu wallet primero')
-      return
-    }
+  e.preventDefault();
 
+  if (!isConnected) return alert('Por favor conecta tu wallet primero');
+  if (!address) return alert('No se pudo obtener tu dirección de wallet');
+
+  try {
+    setStatus('uploading');
+    setMessage('Subiendo metadata a IPFS...');
+
+    // 🔹 1. Subir metadata a tu gateway
+    const bodyData = {
+      name: formData.name,
+      description: formData.description,
+      endpoint: formData.endpoint,
+      category: formData.category,
+      documentation: formData.documentation || '',
+      version: formData.version,
+      tags: formData.tags.split(',').map(tag => tag.trim()),
+      owner: address,
+    };
+
+    console.log('📤 Enviando a gateway:', bodyData);
+
+    const response = await fetch('http://localhost:4000/upload', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'x-api-key': process.env.NEXT_PUBLIC_MY_API_KEY || '',
+  },
+  body: JSON.stringify({
+    name: formData.name,
+    description: formData.description,
+    endpoint: formData.endpoint,
+    category: formData.category,
+    documentation: formData.documentation,
+    version: formData.version,
+    tags: formData.tags.split(',').map(tag => tag.trim()),
+    owner: address,
+  }),
+});
+
+    const text = await response.text(); // <- obtenemos el texto primero
+    console.log('📥 Respuesta del servidor (raw):', text);
+
+    // Intentar parsear JSON y detectar HTML o errores
+    let data;
     try {
-      // Verificar que address existe
-      if (!address) {
-        alert('Error: No se pudo obtener la dirección de la wallet')
-        return
-      }
-
-      // Preparar metadatos para IPFS
-      const metadata: AgentMetadata = {
-        name: formData.name,
-        description: formData.description,
-        category: formData.category,
-        tags: formData.tags,
-        metadata: formData.metadata,
-        image: null, // Se actualizará en uploadToIPFS si hay imagen
-        createdAt: new Date().toISOString(),
-        owner: address
-      }
-
-      // Subir a IPFS
-      const cid = await uploadToIPFS(metadata)
-      
-      // Registrar en el contrato inteligente
-      console.log('Metadata uploaded to IPFS with CID:', cid)
-      console.log('Registering agent in smart contract with price:', formData.price, 'AVAX per second')
-      
-      // Convertir precio de AVAX total a precio por segundo
-      // Asumimos que el precio ingresado es por hora, lo convertimos a por segundo
-      const pricePerHour = parseFloat(formData.price)
-      const pricePerSecond = (pricePerHour / 3600).toString() // convertir a precio por segundo
-      
-      await registerAgent(cid, pricePerSecond)
-      
-    } catch (error) {
-      console.error('Error registering agent:', error)
+      data = JSON.parse(text);
+    } catch (parseError) {
+      throw new Error(
+        `La respuesta no es JSON válido. El servidor respondió con: ${text.substring(0, 200)}`
+      );
     }
-  }
 
-  if (!isConnected) {
-    return (
-      <Layout>
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="text-center">
-            <Bot className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">
-              Conecta tu Wallet
-            </h2>
-            <p className="text-gray-600">
-              Necesitas conectar tu wallet para registrar un agente en el marketplace
-            </p>
-          </div>
-        </div>
-      </Layout>
+    if (!response.ok) {
+      throw new Error(data.error || 'Error subiendo a IPFS');
+    }
+
+    const ipfsHash = data.ipfsHash;
+    if (!ipfsHash) {
+      throw new Error('El servidor no devolvió un ipfsHash válido');
+    }
+
+    console.log('✅ IPFS Hash recibido:', ipfsHash);
+
+    // 🔹 2. Registrar agente en blockchain
+    setStatus('registering');
+    setMessage('Registrando agente en blockchain...');
+
+    // Convierte el precio por hora a precio por segundo
+    const pricePerSecond = parseUnits(
+      (parseFloat(formData.pricePerHour) / 3600).toFixed(18),
+      18
     )
+
+    console.log('💰 pricePerSecond:', pricePerSecond.toString());
+
+    await registerAgent(ipfsHash, pricePerSecond.toString());
+
+    setStatus('success');
+    setMessage('Agente registrado exitosamente 🎉');
+  } catch (err: any) {
+    console.error('❌ Error registrando agente:', err);
+    setStatus('error');
+    setMessage(err.message || 'Error al registrar agente');
   }
+};
+
 
   return (
     <Layout>
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Registrar Nuevo Agente IA
-          </h1>
-          <p className="text-gray-600">
-            Completa la información de tu agente para agregarlo al marketplace
-          </p>
-        </div>
+      <div className="max-w-2xl mx-auto p-6 bg-gray-900 text-white rounded-2xl shadow-lg">
+        <h1 className="text-2xl font-bold mb-4 text-center">Registrar nuevo Agente</h1>
 
-        <form onSubmit={handleSubmit} className="space-y-8">
-          {/* Información Básica */}
-          <div className="bg-white shadow rounded-lg p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">
-              Información Básica
-            </h2>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Nombre del Agente *
-                </label>
-                <input
-                  type="text"
-                  name="name"
-                  required
-                  value={formData.name}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  placeholder="Ej: Mi Asistente IA"
-                />
-              </div>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <input type="text" name="name" placeholder="Nombre del agente"
+            value={formData.name} onChange={handleChange}
+            className="w-full p-2 rounded bg-gray-800 border border-gray-700" required />
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Categoría *
-                </label>
-                <select
-                  name="category"
-                  required
-                  value={formData.category}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                >
-                  <option value="">Selecciona una categoría</option>
-                  {categories.map(category => (
-                    <option key={category} value={category}>
-                      {category}
-                    </option>
-                  ))}
-                </select>
-              </div>
+          <textarea name="description" placeholder="Descripción"
+            value={formData.description} onChange={handleChange}
+            className="w-full p-2 rounded bg-gray-800 border border-gray-700" required />
 
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Descripción *
-                </label>
-                <textarea
-                  name="description"
-                  required
-                  rows={4}
-                  value={formData.description}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  placeholder="Describe las funcionalidades y capacidades de tu agente..."
-                />
-              </div>
+          <input type="text" name="endpoint" placeholder="Endpoint (URL del agente)"
+            value={formData.endpoint} onChange={handleChange}
+            className="w-full p-2 rounded bg-gray-800 border border-gray-700" required />
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Precio (AVAX) *
-                </label>
-                <input
-                  type="number"
-                  name="price"
-                  required
-                  step="0.001"
-                  min="0"
-                  value={formData.price}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  placeholder="0.1"
-                />
-              </div>
+          <input type="text" name="category" placeholder="Categoría"
+            value={formData.category} onChange={handleChange}
+            className="w-full p-2 rounded bg-gray-800 border border-gray-700" required />
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Imagen del Agente
-                </label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageUpload}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                />
-              </div>
-            </div>
-          </div>
+          <input type="text" name="documentation" placeholder="Enlace a documentación (opcional)"
+            value={formData.documentation} onChange={handleChange}
+            className="w-full p-2 rounded bg-gray-800 border border-gray-700" />
 
-          {/* Tags */}
-          <div className="bg-white shadow rounded-lg p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">
-              Tags y Etiquetas
-            </h2>
-            
-            <div className="flex gap-2 mb-4">
-              <input
-                type="text"
-                value={currentTag}
-                onChange={(e) => setCurrentTag(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())}
-                className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                placeholder="Agregar tag..."
-              />
-              <button
-                type="button"
-                onClick={addTag}
-                className="px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700"
-              >
-                Agregar
-              </button>
-            </div>
+          <input type="text" name="version" placeholder="Versión"
+            value={formData.version} onChange={handleChange}
+            className="w-full p-2 rounded bg-gray-800 border border-gray-700" />
 
-            <div className="flex flex-wrap gap-2">
-              {formData.tags.map(tag => (
-                <span
-                  key={tag}
-                  className="bg-primary-100 text-primary-800 px-3 py-1 rounded-full text-sm flex items-center gap-2"
-                >
-                  {tag}
-                  <button
-                    type="button"
-                    onClick={() => removeTag(tag)}
-                    className="text-primary-600 hover:text-primary-800"
-                  >
-                    ×
-                  </button>
-                </span>
-              ))}
-            </div>
-          </div>
+          <input type="text" name="tags" placeholder="Tags (separados por coma)"
+            value={formData.tags} onChange={handleChange}
+            className="w-full p-2 rounded bg-gray-800 border border-gray-700" />
 
-          {/* Metadatos Técnicos */}
-          <div className="bg-white shadow rounded-lg p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">
-              Metadatos Técnicos
-            </h2>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Versión
-                </label>
-                <input
-                  type="text"
-                  name="metadata.version"
-                  value={formData.metadata.version}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  placeholder="1.0.0"
-                />
-              </div>
+          <input type="number" name="pricePerHour" placeholder="Precio por hora (en AVAX)"
+            value={formData.pricePerHour} onChange={handleChange}
+            className="w-full p-2 rounded bg-gray-800 border border-gray-700" required />
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Autor
-                </label>
-                <input
-                  type="text"
-                  name="metadata.author"
-                  value={formData.metadata.author}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  placeholder="Tu nombre o organización"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Estado de Subida a IPFS */}
-          {uploadStatus !== 'idle' && (
-            <div className="bg-white shadow rounded-lg p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">
-                Estado de Subida
-              </h2>
-              
-              <div className="flex items-center space-x-3">
-                {uploadStatus === 'uploading' && (
-                  <>
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary-600"></div>
-                    <span className="text-gray-600">Subiendo metadatos a IPFS...</span>
-                  </>
-                )}
-                
-                {uploadStatus === 'success' && (
-                  <>
-                    <CheckCircle className="h-5 w-5 text-green-600" />
-                    <div>
-                      <span className="text-green-600 font-medium">Subida exitosa!</span>
-                      <p className="text-sm text-gray-600">CID: {ipfsCid}</p>
-                    </div>
-                  </>
-                )}
-                
-                {uploadStatus === 'error' && (
-                  <>
-                    <AlertCircle className="h-5 w-5 text-red-600" />
-                    <span className="text-red-600">Error al subir a IPFS</span>
-                  </>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Estado de transacción blockchain */}
-          {(isPending || isConfirming || isConfirmed || error) && (
-            <div className="bg-white shadow rounded-lg p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">
-                Estado de Transacción
-              </h2>
-              
-              <div className="space-y-3">
-                {isPending && (
-                  <div className="flex items-center space-x-3">
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary-600"></div>
-                    <span className="text-gray-600">Esperando confirmación en wallet...</span>
-                  </div>
-                )}
-                
-                {isConfirming && (
-                  <div className="flex items-center space-x-3">
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary-600"></div>
-                    <span className="text-gray-600">Registrando en blockchain...</span>
-                  </div>
-                )}
-                
-                {isConfirmed && (
-                  <div className="flex items-center space-x-3">
-                    <CheckCircle className="h-5 w-5 text-green-600" />
-                    <div>
-                      <span className="text-green-600 font-medium">¡Agente registrado exitosamente!</span>
-                      {hash && (
-                        <p className="text-sm text-gray-600">
-                          Tx: <span className="font-mono">{hash.slice(0, 10)}...{hash.slice(-8)}</span>
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                )}
-                
-                {error && (
-                  <div className="flex items-center space-x-3">
-                    <AlertCircle className="h-5 w-5 text-red-600" />
-                    <div>
-                      <span className="text-red-600 font-medium">Error en transacción</span>
-                      <p className="text-sm text-gray-600">{error.message}</p>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Submit Button */}
-          <div className="flex justify-end">
-            <button
-              type="submit"
-              disabled={isUploading || isPending || isConfirming}
-              className="bg-primary-600 text-white px-8 py-3 rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
-            >
-              {isUploading ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                  <span>Subiendo a IPFS...</span>
-                </>
-              ) : isPending ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                  <span>Confirma en wallet...</span>
-                </>
-              ) : isConfirming ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                  <span>Registrando...</span>
-                </>
-              ) : isConfirmed ? (
-                <>
-                  <CheckCircle className="h-4 w-4" />
-                  <span>¡Registrado!</span>
-                </>
-              ) : (
-                <>
-                  <Upload className="h-4 w-4" />
-                  <span>Registrar Agente</span>
-                </>
-              )}
-            </button>
-          </div>
+          <button
+            type="submit"
+            disabled={isPending || isConfirming}
+            className="w-full bg-purple-600 hover:bg-purple-700 transition p-2 rounded font-semibold"
+          >
+            {isPending || isConfirming ? 'Registrando...' : 'Registrar Agente'}
+          </button>
         </form>
+
+        {message && (
+          <div className={`mt-4 text-center ${status === 'error' ? 'text-red-400' : 'text-green-400'}`}>
+            {message}
+          </div>
+        )}
       </div>
     </Layout>
   )

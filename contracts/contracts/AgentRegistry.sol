@@ -5,7 +5,7 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 /**
  * @title AgentRegistryRentable
- * @notice Registro de agentes que permite alquilar por tiempo (precio por segundo).
+ * @notice Registro de agentes que permite alquilar por tiempo (precio por segundo + tarifa base).
  * - Los agentes se registran con metadata en IPFS.
  * - Cada agente tiene un owner (dueño) que recibe los pagos por alquiler.
  * - Los pagos se acumulan en saldo y el owner los retira (pull pattern).
@@ -21,6 +21,7 @@ contract AgentRegistryRentable is ReentrancyGuard {
         string ipfsHash;
         uint256 score;           // reputación (promedio o valor arbitrario)
         uint256 pricePerSecond;  // precio por segundo (en wei)
+        uint256 basePrice;       // tarifa fija por uso (en wei)
         bool available;          // si está disponible para alquiler
         uint256 createdAt;
     }
@@ -38,8 +39,9 @@ contract AgentRegistryRentable is ReentrancyGuard {
     mapping(address => uint256) public balances;  // pull payments: owner => balance (wei)
 
     // Events
-    event AgentRegistered(uint256 indexed id, address indexed owner, string ipfsHash, uint256 pricePerSecond);
-    event AgentPriceUpdated(uint256 indexed id, uint256 oldPrice, uint256 newPrice);
+    event AgentRegistered(uint256 indexed id, address indexed owner, string ipfsHash, uint256 pricePerSecond, uint256 basePrice);
+    event AgentPriceUpdated(uint256 indexed id, uint256 oldPricePerSecond, uint256 newPricePerSecond);
+    event AgentBasePriceUpdated(uint256 indexed id, uint256 oldBasePrice, uint256 newBasePrice);
     event AgentAvailabilityUpdated(uint256 indexed id, bool available);
     event AgentRented(uint256 indexed id, address indexed renter, uint256 startAt, uint256 endAt, uint256 pricePaid);
     event RentalExtended(uint256 indexed id, address indexed renter, uint256 oldEndAt, uint256 newEndAt, uint256 extraPaid);
@@ -59,13 +61,20 @@ contract AgentRegistryRentable is ReentrancyGuard {
 
     // ---------- Registration ----------
     /**
-     * @notice Registra un agente con un precio por segundo.
+     * @notice Registra un agente con un precio por segundo y una tarifa base.
      * @param ipfsHash CID en IPFS que apunta al metadata del agente.
      * @param pricePerSecond precio por segundo en wei (1 AVAX = 1e18 wei).
+     * @param basePrice tarifa fija de uso en wei (puede ser 0).
      */
-    function registerAgent(string calldata ipfsHash, uint256 pricePerSecond) external {
+    function registerAgent(
+        string calldata ipfsHash,
+        uint256 pricePerSecond,
+        uint256 basePrice
+    ) external {
         require(bytes(ipfsHash).length > 0, "IPFS hash required");
-        require(pricePerSecond > 0, "Price must be > 0");
+        require(pricePerSecond > 0, "pricePerSecond must be > 0");
+        // basePrice can be 0 (no tarifa fija)
+        require(basePrice >= 0, "basePrice invalid");
 
         uint256 id = nextId++;
         agents[id] = Agent({
@@ -74,11 +83,12 @@ contract AgentRegistryRentable is ReentrancyGuard {
             ipfsHash: ipfsHash,
             score: 0,
             pricePerSecond: pricePerSecond,
+            basePrice: basePrice,
             available: true,
             createdAt: block.timestamp
         });
 
-        emit AgentRegistered(id, msg.sender, ipfsHash, pricePerSecond);
+        emit AgentRegistered(id, msg.sender, ipfsHash, pricePerSecond, basePrice);
     }
 
     // ---------- View helpers ----------
@@ -109,6 +119,16 @@ contract AgentRegistryRentable is ReentrancyGuard {
     }
 
     /**
+     * @notice Cambia la tarifa base del agente.
+     */
+    function setBasePrice(uint256 id, uint256 newBasePrice) external agentExists(id) onlyAgentOwner(id) {
+        // newBasePrice can be zero
+        uint256 old = agents[id].basePrice;
+        agents[id].basePrice = newBasePrice;
+        emit AgentBasePriceUpdated(id, old, newBasePrice);
+    }
+
+    /**
      * @notice Habilita o inhabilita el agente para alquiler.
      */
     function setAvailability(uint256 id, bool available) external agentExists(id) onlyAgentOwner(id) {
@@ -119,6 +139,7 @@ contract AgentRegistryRentable is ReentrancyGuard {
     // ---------- Renting ----------
     /**
      * @notice Alquila un agente por una duración (segundos). Pagos en wei.
+     * Total = basePrice + pricePerSecond * durationSeconds
      * @param id id del agente
      * @param durationSeconds duración en segundos que se desea alquilar
      */
@@ -126,7 +147,9 @@ contract AgentRegistryRentable is ReentrancyGuard {
         Agent storage a = agents[id];
         require(a.available, "Agent not available");
         require(durationSeconds > 0, "Duration must be > 0");
-        uint256 cost = a.pricePerSecond * durationSeconds;
+
+        uint256 costPerTime = a.pricePerSecond * durationSeconds;
+        uint256 cost = a.basePrice + costPerTime;
         require(msg.value >= cost, "Insufficient payment");
 
         // Si ya está rentado y no expiró: no permitir solapamiento por otro renter
@@ -152,11 +175,8 @@ contract AgentRegistryRentable is ReentrancyGuard {
         if (msg.value > cost) {
             uint256 change = msg.value - cost;
             (bool sent, ) = payable(msg.sender).call{value: change}("");
-            // No revert on refund failure — intentamos y, si falla, lo dejamos en contrato (opción conservadora)
-            if (!sent) {
-                // si falla, sumar al balance del renter (no deseado), pero es mejor revertir para evitar pérdidas
-                revert("Refund failed");
-            }
+            // si falla el reembolso, revertimos para no dejar fondos atrapados por error del transfer
+            require(sent, "Refund failed");
         }
 
         emit AgentRented(id, msg.sender, startAt, endAt, cost);
@@ -164,6 +184,7 @@ contract AgentRegistryRentable is ReentrancyGuard {
 
     /**
      * @notice Extiende la renta actual (solo el renter actual puede hacerlo antes de expiración).
+     * Nota: la extensión NO cobra de nuevo basePrice, solo precio por segundo.
      * @param id id del agente
      * @param extraSeconds segundos adicionales a sumar
      */
@@ -188,9 +209,7 @@ contract AgentRegistryRentable is ReentrancyGuard {
         if (msg.value > extraCost) {
             uint256 change = msg.value - extraCost;
             (bool sent, ) = payable(msg.sender).call{value: change}("");
-            if (!sent) {
-                revert("Refund failed");
-            }
+            require(sent, "Refund failed");
         }
 
         emit RentalExtended(id, msg.sender, oldEnd, r.endAt, extraCost);
@@ -234,10 +253,10 @@ contract AgentRegistryRentable is ReentrancyGuard {
     }
 
     function getAgents() external view returns (Agent[] memory) {
-    Agent[] memory list = new Agent[](nextId - 1);
-    for (uint256 i = 1; i < nextId; i++) {
-        list[i - 1] = agents[i];
+        Agent[] memory list = new Agent[](nextId - 1);
+        for (uint256 i = 1; i < nextId; i++) {
+            list[i - 1] = agents[i];
+        }
+        return list;
     }
-    return list;
-}
 }
