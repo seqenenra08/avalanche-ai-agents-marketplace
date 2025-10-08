@@ -32,6 +32,7 @@ app.post('/upload', async (req, res) => {
     }
 
     const metadata = req.body;
+    console.log('Received metadata:', metadata);
 
     if (!metadata.name || !metadata.endpoint || !metadata.category) {
       return res.status(400).json({ error: 'Missing required fields' });
