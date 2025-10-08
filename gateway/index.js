@@ -2,8 +2,10 @@ import 'dotenv/config';
 import express from 'express';
 import bodyParser from 'body-parser';
 import axios from 'axios';
+import cors from 'cors';
 
 const app = express();
+app.use(cors()); 
 app.use(bodyParser.json());
 
 const MY_API_KEY = process.env.MY_API_KEY;
@@ -43,5 +45,5 @@ app.post('/upload', async (req, res) => {
   }
 });
 
-const PORT = 3000;
+const PORT = 4000;
 app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
