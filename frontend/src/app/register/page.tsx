@@ -54,22 +54,22 @@ export default function AgentForm() {
     console.log('📤 Enviando a gateway:', bodyData);
 
     const response = await fetch('http://localhost:4000/upload', {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-    'x-api-key': process.env.NEXT_PUBLIC_MY_API_KEY || '',
-  },
-  body: JSON.stringify({
-    name: formData.name,
-    description: formData.description,
-    endpoint: formData.endpoint,
-    category: formData.category,
-    documentation: formData.documentation,
-    version: formData.version,
-    tags: formData.tags.split(',').map(tag => tag.trim()),
-    owner: address,
-  }),
-});
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': process.env.NEXT_PUBLIC_MY_API_KEY || '',
+      },
+      body: JSON.stringify({
+        name: formData.name,
+        description: formData.description,
+        endpoint: formData.endpoint,
+        category: formData.category,
+        documentation: formData.documentation,
+        version: formData.version,
+        tags: formData.tags.split(',').map(tag => tag.trim()),
+        owner: address,
+      }),
+    });
 
     const text = await response.text(); // <- obtenemos el texto primero
     console.log('📥 Respuesta del servidor (raw):', text);
