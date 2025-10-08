@@ -12,6 +12,7 @@ export interface Agent {
   ipfsHash: string
   score: bigint
   pricePerSecond: bigint
+  basePrice: bigint
   available: boolean
   createdAt: bigint
 }
@@ -46,6 +47,18 @@ export function useIsAgentRented(id: number) {
     query: {
       enabled: id > 0
     }
+  })
+}
+
+// Hook para traer todos los agentes registrados
+export function useAllAgents() {
+  return useReadContract({
+    address: AGENT_REGISTRY_ADDRESS,
+    abi: AGENT_REGISTRY_ABI,
+    functionName: 'getAgents',
+    query: {
+      refetchInterval: 5000, // actualiza cada 5 segundos
+    },
   })
 }
 
@@ -97,14 +110,18 @@ export function useRegisterAgent() {
     hash,
   })
 
-  const registerAgent = async (ipfsHash: string, priceInAvaxPerSecond: string) => {
+  const registerAgent = async (ipfsHash: string, priceInAvaxPerSecond: string, basePrice: string) => {
     const pricePerSecond = parseEther(priceInAvaxPerSecond)
+    const basePriceBigInt = BigInt(Math.floor(parseFloat(basePrice) * 1e18))
+
+
+    console.log('🚀 Registrando agente con:', { ipfsHash, pricePerSecond: pricePerSecond.toString(), basePricePerSecond: basePriceBigInt.toString() })
     
     writeContract({
       address: AGENT_REGISTRY_ADDRESS,
       abi: AGENT_REGISTRY_ABI,
       functionName: 'registerAgent',
-      args: [ipfsHash, pricePerSecond],
+      args: [ipfsHash, pricePerSecond, basePriceBigInt],
     })
   }
 

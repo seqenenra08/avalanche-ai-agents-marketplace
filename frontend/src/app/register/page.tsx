@@ -19,6 +19,7 @@ export default function AgentForm() {
     version: '1.0.0',
     tags: '',
     pricePerHour: '',
+    basePrice: '',
   })
 
   const [status, setStatus] = useState<'idle' | 'uploading' | 'registering' | 'success' | 'error'>('idle')
@@ -39,7 +40,6 @@ export default function AgentForm() {
     setStatus('uploading');
     setMessage('Subiendo metadata a IPFS...');
 
-    // 🔹 1. Subir metadata a tu gateway
     const bodyData = {
       name: formData.name,
       description: formData.description,
@@ -103,11 +103,11 @@ export default function AgentForm() {
     const pricePerSecond = parseUnits(
       (parseFloat(formData.pricePerHour) / 3600).toFixed(18),
       18
-    )
+    );
 
     console.log('💰 pricePerSecond:', pricePerSecond.toString());
 
-    await registerAgent(ipfsHash, pricePerSecond.toString());
+    await registerAgent(ipfsHash, pricePerSecond.toString(), (formData.basePrice || "0").toString());
 
     setStatus('success');
     setMessage('Agente registrado exitosamente 🎉');
@@ -156,6 +156,15 @@ export default function AgentForm() {
           <input type="number" name="pricePerHour" placeholder="Precio por hora (en AVAX)"
             value={formData.pricePerHour} onChange={handleChange}
             className="w-full p-2 rounded bg-gray-800 border border-gray-700" required />
+
+          <input
+            type="number"
+            name="basePrice"
+            placeholder="Tarifa base (en AVAX, opcional)"
+            value={formData.basePrice}
+            onChange={handleChange}
+            className="w-full p-2 rounded bg-gray-800 border border-gray-700"
+          />
 
           <button
             type="submit"
