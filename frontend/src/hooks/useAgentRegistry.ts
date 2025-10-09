@@ -92,7 +92,7 @@ export function useRentalTimeRemaining(id: number) {
 
 // Hook para obtener balance de ganancias
 export function useOwnerBalance(address: Address) {
-  return useReadContract({
+  const result = useReadContract({
     address: AGENT_REGISTRY_ADDRESS,
     abi: AGENT_REGISTRY_ABI,
     functionName: 'balances',
@@ -101,6 +101,10 @@ export function useOwnerBalance(address: Address) {
       enabled: !!address
     }
   })
+  
+  console.log('useOwnerBalance:', { address, balance: result.data, isLoading: result.isLoading, error: result.error })
+  
+  return result
 }
 
 // Hook para registrar un agente
@@ -145,8 +149,29 @@ export function useRentAgent() {
   })
 
   const rentAgent = async (id: number, durationSeconds: number, pricePerSecond: bigint, basePrice: bigint) => {
-    const totalCost = (pricePerSecond / BigInt(1e18)) * BigInt(durationSeconds) + basePrice
-    console.log('🚀 Rentando agente con:', { id, durationSeconds, pricePerSecond: pricePerSecond.toString(), basePrice: basePrice.toString(), totalCost: totalCost.toString() })
+    const totalCost = pricePerSecond * BigInt(durationSeconds) + basePrice
+    
+    // Verificar si el precio es razonable (menos de 100 AVAX)
+    const maxReasonablePrice = parseEther('100') // 100 AVAX máximo
+    if (totalCost > maxReasonablePrice) {
+      console.error('❌ Precio demasiado alto:', {
+        totalCostETH: formatEther(totalCost),
+        pricePerSecondETH: formatEther(pricePerSecond),
+        basePriceETH: formatEther(basePrice),
+        durationSeconds
+      })
+      alert(`El precio calculado (${formatEther(totalCost)} AVAX) parece demasiado alto. Verifica la configuración de precios del agente.`)
+      return
+    }
+    
+    console.log('🚀 Rentando agente con:', { 
+      id, 
+      durationSeconds, 
+      pricePerSecond: pricePerSecond.toString(), 
+      basePrice: basePrice.toString(), 
+      totalCost: totalCost.toString(),
+      totalCostETH: formatEther(totalCost)
+    })
     writeContract({
       address: AGENT_REGISTRY_ADDRESS,
       abi: AGENT_REGISTRY_ABI,
@@ -217,6 +242,34 @@ export function useSetAgentPrice() {
 
   return {
     setPrice,
+    hash,
+    error,
+    isPending,
+    isConfirming,
+    isConfirmed
+  }
+}
+
+export function useSetAgentBasePrice() {
+  const { writeContract, data: hash, error, isPending } = useWriteContract()
+  
+  const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({
+    hash,
+  })
+
+  const setBasePrice = async (id: number, newBasePriceInAvax: string) => {
+    const newBasePrice = parseEther(newBasePriceInAvax)
+    
+    writeContract({
+      address: AGENT_REGISTRY_ADDRESS,
+      abi: AGENT_REGISTRY_ABI,
+      functionName: 'setBasePrice',
+      args: [BigInt(id), newBasePrice],
+    })
+  }
+
+  return {
+    setBasePrice,
     hash,
     error,
     isPending,

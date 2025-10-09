@@ -227,7 +227,7 @@ export default function Home() {
     if (isNaN(minutes) || minutes <= 0) return '0'
     
     const durationSeconds = minutes * 60
-    const timeCost = BigInt(Math.floor(Number(selectedAgent.pricePerSecond) / 1e18)) * BigInt(durationSeconds)
+    const timeCost = selectedAgent.pricePerSecond * BigInt(durationSeconds)
     const totalCost = selectedAgent.basePrice + timeCost
     
     return formatEther(totalCost)

@@ -3,7 +3,7 @@
 import { Layout } from '@/components/Layout'
 import { Bot, Star, TrendingUp, DollarSign, Settings, Power, Edit, Trash2, CheckCircle, XCircle, Clock, Users, Eye, Calendar, Award } from 'lucide-react'
 import { useState, useEffect } from 'react'
-import { useAllAgents, useSetAgentAvailability, useSetAgentPrice, useOwnerBalance, useWithdrawEarnings, type Agent as ContractAgent } from '@/hooks/useAgentRegistry'
+import { useAllAgents, useSetAgentAvailability, useSetAgentPrice, useSetAgentBasePrice, useOwnerBalance, useWithdrawEarnings, type Agent as ContractAgent } from '@/hooks/useAgentRegistry'
 import { formatEther, formatUnits } from 'viem'
 import { fetchAgentMetadata } from '@/services/ipfs'
 import { useAccount } from 'wagmi'
@@ -51,10 +51,13 @@ export default function MyAgents() {
   const [selectedAgent, setSelectedAgent] = useState<AgentWithMetadata | null>(null)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [newPrice, setNewPrice] = useState('')
+  const [newBasePrice, setNewBasePrice] = useState('')
   
   const { address } = useAccount()
   const { data: allAgents, isLoading } = useAllAgents()
   const { data: balance } = useOwnerBalance(address!)
+  
+  console.log('MyAgents page:', { address, balance, balanceString: balance?.toString() })
   
   const { 
     setAvailability, 
@@ -69,6 +72,13 @@ export default function MyAgents() {
     isConfirming: isConfirmingPrice,
     isConfirmed: isPriceConfirmed
   } = useSetAgentPrice()
+
+  const {
+    setBasePrice,
+    isPending: isUpdatingBasePrice,
+    isConfirming: isConfirmingBasePrice,
+    isConfirmed: isBasePriceConfirmed
+  } = useSetAgentBasePrice()
 
   const {
     withdrawEarnings,
@@ -86,6 +96,18 @@ export default function MyAgents() {
     const userAgents = allAgents.filter(agent => 
       agent.owner.toLowerCase() === address.toLowerCase()
     )
+
+    console.log('All agents:', allAgents.length)
+    console.log('My agents (owner match):', userAgents.length)
+    console.log('User address:', address)
+    console.log('Agent owners:', allAgents.map(a => ({ id: a.id, owner: a.owner })))
+    console.log('Agent prices:', allAgents.map(a => ({ 
+      id: a.id, 
+      basePrice: a.basePrice.toString(), 
+      pricePerSecond: a.pricePerSecond.toString(),
+      basePriceEth: formatEther(a.basePrice),
+      pricePerSecondEth: formatEther(a.pricePerSecond)
+    })))
 
     Promise.all(
       userAgents.map(async (agent: ContractAgent): Promise<AgentWithMetadata> => {
@@ -112,12 +134,18 @@ export default function MyAgents() {
   const handleOpenEditModal = (agent: AgentWithMetadata) => {
     setSelectedAgent(agent)
     setNewPrice(formatEther(agent.pricePerSecond))
+    setNewBasePrice(formatEther(agent.basePrice))
     setIsEditModalOpen(true)
   }
 
   const handleUpdatePrice = async () => {
     if (!selectedAgent || !newPrice) return
     await setPrice(Number(selectedAgent.id), newPrice)
+  }
+
+  const handleUpdateBasePrice = async () => {
+    if (!selectedAgent || !newBasePrice) return
+    await setBasePrice(Number(selectedAgent.id), newBasePrice)
   }
 
   const handleWithdraw = async () => {
@@ -368,31 +396,58 @@ export default function MyAgents() {
             <div className="relative bg-white rounded-2xl shadow-2xl max-w-md w-full mx-auto transform transition-all">
               <div className="p-8">
                 <h3 className="text-2xl font-bold text-gray-900 mb-6">
-                  Actualizar Precio por Segundo
+                  Actualizar Precios del Agente
                 </h3>
                 
                 <div className="mb-6">
                   <label className="block text-sm font-bold text-gray-700 mb-2">
                     Agente: {selectedAgent.name}
                   </label>
-                  <p className="text-sm text-gray-600 mb-4">
-                    Precio actual: {formatEther(selectedAgent.pricePerSecond)} AVAX/s
-                  </p>
                   
-                  <input
-                    type="number"
-                    step="0.000001"
-                    value={newPrice}
-                    onChange={(e) => setNewPrice(e.target.value)}
-                    placeholder="0.000001"
-                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-4 focus:ring-blue-200 focus:border-blue-500 transition-all text-gray-900 font-medium"
-                  />
-                  <p className="text-xs text-gray-500 mt-2">
-                    Ejemplo: 0.000001 AVAX por segundo
-                  </p>
+                  {/* Precio Base */}
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Precio Base (fee de activación)
+                    </label>
+                    <p className="text-sm text-gray-600 mb-2">
+                      Actual: {formatEther(selectedAgent.basePrice)} AVAX
+                    </p>
+                    <input
+                      type="number"
+                      step="0.001"
+                      value={newBasePrice}
+                      onChange={(e) => setNewBasePrice(e.target.value)}
+                      placeholder="0.01"
+                      className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-4 focus:ring-blue-200 focus:border-blue-500 transition-all text-gray-900 font-medium"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Recomendado: 0.001 - 0.01 AVAX
+                    </p>
+                  </div>
+                  
+                  {/* Precio por Segundo */}
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Precio por Segundo
+                    </label>
+                    <p className="text-sm text-gray-600 mb-2">
+                      Actual: {formatEther(selectedAgent.pricePerSecond)} AVAX/s
+                    </p>
+                    <input
+                      type="number"
+                      step="0.0001"
+                      value={newPrice}
+                      onChange={(e) => setNewPrice(e.target.value)}
+                      placeholder="0.0001"
+                      className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-4 focus:ring-blue-200 focus:border-blue-500 transition-all text-gray-900 font-medium"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Recomendado: 0.0001 - 0.001 AVAX por segundo
+                    </p>
+                  </div>
                 </div>
 
-                {isPriceConfirmed && (
+                {(isPriceConfirmed || isBasePriceConfirmed) && (
                   <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
                     <p className="text-sm text-green-700 font-semibold">
                       ✅ Precio actualizado exitosamente!
@@ -400,19 +455,30 @@ export default function MyAgents() {
                   </div>
                 )}
 
-                <div className="flex gap-3">
+                <div className="flex flex-col gap-3">
+                  <button
+                    onClick={handleUpdateBasePrice}
+                    disabled={isUpdatingBasePrice || isConfirmingBasePrice || !newBasePrice}
+                    className="w-full bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-xl font-bold transition-all disabled:bg-gray-400 disabled:cursor-not-allowed"
+                  >
+                    {isUpdatingBasePrice && 'Preparando...'}
+                    {isConfirmingBasePrice && 'Confirmando...'}
+                    {!isUpdatingBasePrice && !isConfirmingBasePrice && 'Actualizar Precio Base'}
+                  </button>
+                  
                   <button
                     onClick={handleUpdatePrice}
                     disabled={isUpdatingPrice || isConfirmingPrice || !newPrice}
-                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-bold transition-all disabled:bg-gray-400 disabled:cursor-not-allowed"
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-bold transition-all disabled:bg-gray-400 disabled:cursor-not-allowed"
                   >
                     {isUpdatingPrice && 'Preparando...'}
                     {isConfirmingPrice && 'Confirmando...'}
-                    {!isUpdatingPrice && !isConfirmingPrice && 'Actualizar Precio'}
+                    {!isUpdatingPrice && !isConfirmingPrice && 'Actualizar Precio por Segundo'}
                   </button>
+                  
                   <button
                     onClick={() => setIsEditModalOpen(false)}
-                    className="px-6 py-3 border-2 border-gray-300 text-gray-900 rounded-xl font-bold hover:bg-gray-50 transition-all"
+                    className="w-full px-6 py-3 border-2 border-gray-300 text-gray-900 rounded-xl font-bold hover:bg-gray-50 transition-all"
                   >
                     Cancelar
                   </button>
