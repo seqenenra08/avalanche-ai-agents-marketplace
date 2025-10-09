@@ -1,0 +1,30 @@
+### Health
+GET http://localhost:8000/health
+
+### Invoke
+POST http://localhost:8000/invoke
+Content-Type: application/json
+x-api-key: OPCIONAL-API-KEY
+
+{
+  "text": "El marketplace de Avalanche permite registrar agentes de inteligencia artificial de forma descentralizada. Los desarrolladores pueden publicar sus agentes y los usuarios pueden ejecutarlos pagando con tokens AVAX. El sistema garantiza transparencia mediante verificación on-chain de las ejecuciones.",
+  "max_sentences": 3
+}
+
+### Verify (pega aquí la respuesta anterior completa)
+POST http://localhost:8000/verify
+Content-Type: application/json
+
+{
+  "agentId": "summarizer-001",
+  "version": "1.0.0",
+  "timestamp": 1728000000,
+  "inputHash": "abc123...",
+  "result": {
+    "type": "summary",
+    "text": "...",
+    "max_sentences": 3
+  },
+  "outputHash": "def456...",
+  "signature": "ghi789..."
+}
