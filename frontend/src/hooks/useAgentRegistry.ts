@@ -45,7 +45,8 @@ export function useIsAgentRented(id: number) {
     functionName: 'isRented',
     args: [BigInt(id)],
     query: {
-      enabled: id > 0
+      enabled: id > 0,
+      refetchInterval: 3000, // Actualizar cada 3 segundos
     }
   })
 }
@@ -57,7 +58,7 @@ export function useAllAgents() {
     abi: AGENT_REGISTRY_ABI,
     functionName: 'getAgents',
     query: {
-      refetchInterval: 5000, // actualiza cada 5 segundos
+      refetchInterval: 3000, // actualiza cada 3 segundos
     },
   })
 }
@@ -143,9 +144,9 @@ export function useRentAgent() {
     hash,
   })
 
-  const rentAgent = async (id: number, durationSeconds: number, pricePerSecond: bigint) => {
-    const totalCost = pricePerSecond * BigInt(durationSeconds)
-    
+  const rentAgent = async (id: number, durationSeconds: number, pricePerSecond: bigint, basePrice: bigint) => {
+    const totalCost = (pricePerSecond / BigInt(1e18)) * BigInt(durationSeconds) + basePrice
+    console.log('🚀 Rentando agente con:', { id, durationSeconds, pricePerSecond: pricePerSecond.toString(), basePrice: basePrice.toString(), totalCost: totalCost.toString() })
     writeContract({
       address: AGENT_REGISTRY_ADDRESS,
       abi: AGENT_REGISTRY_ABI,

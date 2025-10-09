@@ -1,24 +1,19 @@
 'use client'
 
 import { Layout } from '@/components/Layout'
-import { Search, Bot, Star, Users, TrendingUp, X, ExternalLink, Calendar, Award, Sparkles, Clock, CheckCircle, XCircle, Power } from 'lucide-react'
+import { Search, Bot, Star, Calendar, Sparkles, Clock, CheckCircle, XCircle, X } from 'lucide-react'
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
-import { useAllAgents, useSetAgentAvailability, type Agent as ContractAgent } from '@/hooks/useAgentRegistry'
-import { formatEther, formatUnits } from 'viem'
+import { useAllAgents, useRentAgent, useIsAgentRented, type Agent as ContractAgent } from '@/hooks/useAgentRegistry'
+import { formatEther } from 'viem'
 import { fetchAgentMetadata } from '@/services/ipfs'
 
 export interface AgentWithMetadata extends ContractAgent {
-  // Metadata de IPFS
   name: string
   description: string
   category: string
   tags: string[]
   image: string
-  
-  // Ya no necesitamos estos strings duplicados, usamos los bigint directamente
-  // basePriceStr: string
-  // pricePerSecondStr: string
 }
 
 const formatDate = (timestamp: bigint): string => {
@@ -32,12 +27,10 @@ const formatDate = (timestamp: bigint): string => {
   })
 }
 
-// Helper para formatear precio por segundo en unidades legibles
 const formatPricePerSecond = (pricePerSecond: bigint): { value: string; unit: string } => {
   const weiValue = Number(pricePerSecond)
   const avaxValue = Number(formatEther(pricePerSecond))
   
-  // Si el valor en AVAX es mayor o igual a 0.001, mostrar en AVAX
   if (avaxValue >= 0.001) {
     return {
       value: avaxValue.toFixed(6),
@@ -45,8 +38,6 @@ const formatPricePerSecond = (pricePerSecond: bigint): { value: string; unit: st
     }
   }
   
-  // Si el valor es menor que 0.001 AVAX, mostrar en microAVAX (μAVAX)
-  // 1 μAVAX = 1000000000000 wei = 0.000001 AVAX
   const microAvaxValue = weiValue / 1000000000000
   return {
     value: microAvaxValue.toFixed(2),
@@ -54,7 +45,84 @@ const formatPricePerSecond = (pricePerSecond: bigint): { value: string; unit: st
   }
 }
 
-// Helper para calcular tiempo desde creación
+// Componente para mostrar el estado de rentado
+const RentalStatus = ({ agentId }: { agentId: bigint }) => {
+  const { data: isRented, isLoading, refetch } = useIsAgentRented(Number(agentId))
+  
+  // Forzar actualización cada 3 segundos adicionales por si acaso
+  useEffect(() => {
+    const interval = setInterval(() => {
+      refetch()
+    }, 3000)
+    
+    return () => clearInterval(interval)
+  }, [refetch])
+  
+  if (isLoading) {
+    return (
+      <span className="bg-gray-200 text-gray-600 px-3 py-1.5 rounded-full text-xs font-bold shadow-lg flex items-center gap-1 animate-pulse">
+        <Clock className="h-3 w-3" />
+        Verificando...
+      </span>
+    )
+  }
+  
+  if (isRented) {
+    return (
+      <span className="bg-orange-500 text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-lg flex items-center gap-1">
+        <Clock className="h-3 w-3" />
+        Rentado
+      </span>
+    )
+  }
+  
+  return (
+    <span className="bg-green-500 text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-lg flex items-center gap-1">
+      <CheckCircle className="h-3 w-3" />
+      Libre
+    </span>
+  )
+}
+
+// Componente para mostrar el estado de rentado en el modal
+const RentalStatusModal = ({ agentId }: { agentId: bigint }) => {
+  const { data: isRented, isLoading, refetch } = useIsAgentRented(Number(agentId))
+  
+  // Forzar actualización cada 3 segundos adicionales por si acaso
+  useEffect(() => {
+    const interval = setInterval(() => {
+      refetch()
+    }, 3000)
+    
+    return () => clearInterval(interval)
+  }, [refetch])
+  
+  if (isLoading) {
+    return (
+      <span className="bg-white/20 text-white px-3 py-1 rounded-full text-sm font-bold flex items-center gap-1 animate-pulse">
+        <Clock className="h-4 w-4" />
+        Verificando...
+      </span>
+    )
+  }
+  
+  if (isRented) {
+    return (
+      <span className="bg-orange-500/90 text-white px-3 py-1 rounded-full text-sm font-bold flex items-center gap-1">
+        <Clock className="h-4 w-4" />
+        Rentado
+      </span>
+    )
+  }
+  
+  return (
+    <span className="bg-emerald-500/90 text-white px-3 py-1 rounded-full text-sm font-bold flex items-center gap-1">
+      <CheckCircle className="h-4 w-4" />
+      Libre
+    </span>
+  )
+}
+
 const getTimeSinceCreation = (timestamp: bigint): string => {
   const now = Date.now()
   const created = Number(timestamp) * 1000
@@ -75,16 +143,17 @@ export default function Home() {
   const [selectedAgent, setSelectedAgent] = useState<AgentWithMetadata | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [showAvailableOnly, setShowAvailableOnly] = useState(false)
+  const [rentalMinutes, setRentalMinutes] = useState<string>('60')
 
   const categories = ['all', 'Conversational', 'Analytics', 'Creative', 'Finance']
 
   const { data, isLoading, error } = useAllAgents()
   const { 
-    setAvailability, 
-    isPending: isToggling, 
-    isConfirming: isConfirmingToggle,
-    isConfirmed: isToggleConfirmed 
-  } = useSetAgentAvailability()
+    rentAgent,
+    isPending: isRenting, 
+    isConfirming: isConfirmingRent,
+    isConfirmed: isRentConfirmed 
+  } = useRentAgent()
 
   useEffect(() => {
     if (!data) return
@@ -95,7 +164,7 @@ export default function Home() {
       data.map(async (agent: ContractAgent): Promise<AgentWithMetadata> => {
         const metadata = await fetchAgentMetadata(agent.ipfsHash)
         return {
-          ...agent, // Esto incluye: id, owner, ipfsHash, score, pricePerSecond, basePrice, available, createdAt
+          ...agent,
           name: metadata.name,
           description: metadata.description,
           category: metadata.category,
@@ -108,6 +177,16 @@ export default function Home() {
     .catch(console.error)
   }, [data])
 
+  // Efecto para manejar confirmación de renta
+  useEffect(() => {
+    if (isRentConfirmed) {
+      setIsModalOpen(false)
+      setSelectedAgent(null)
+      document.body.style.overflow = 'auto'
+      // Los hooks ya se actualizarán automáticamente con refetchInterval
+    }
+  }, [isRentConfirmed])
+
   const openModal = (agent: AgentWithMetadata) => {
     setSelectedAgent(agent)
     setIsModalOpen(true)
@@ -117,26 +196,52 @@ export default function Home() {
   const closeModal = () => {
     setIsModalOpen(false)
     setSelectedAgent(null)
+    setRentalMinutes('60')
     document.body.style.overflow = 'unset'
   }
 
-  // Handler para cambiar disponibilidad
-  const handleToggleAvailability = async () => {
-    if (!selectedAgent) return
+  const handleRentAgent = async () => {
+    if (!selectedAgent || !rentalMinutes) return
     
-    const newAvailability = !selectedAgent.available
-    await setAvailability(Number(selectedAgent.id), newAvailability)
+    const minutes = parseInt(rentalMinutes)
+    if (isNaN(minutes) || minutes <= 0) {
+      alert('Por favor ingresa un número válido de minutos')
+      return
+    }
+
+    const durationSeconds = minutes * 60
+    
+    // Pasar tanto pricePerSecond como basePrice al hook
+    await rentAgent(
+      Number(selectedAgent.id), 
+      durationSeconds, 
+      selectedAgent.pricePerSecond,
+      selectedAgent.basePrice
+    )
   }
 
-  // Efecto para cerrar modal y refrescar cuando se confirme el cambio
-  useEffect(() => {
-    if (isToggleConfirmed) {
-      // Opcional: puedes cerrar el modal o mostrar un mensaje de éxito
-      console.log('✅ Disponibilidad cambiada exitosamente')
-    }
-  }, [isToggleConfirmed])
+  const calculateEstimatedCost = () => {
+    if (!selectedAgent || !rentalMinutes) return '0'
+    
+    const minutes = parseInt(rentalMinutes)
+    if (isNaN(minutes) || minutes <= 0) return '0'
+    
+    const durationSeconds = minutes * 60
+    const timeCost = BigInt(Math.floor(Number(selectedAgent.pricePerSecond) / 1e18)) * BigInt(durationSeconds)
+    const totalCost = selectedAgent.basePrice + timeCost
+    
+    return formatEther(totalCost)
+  }
 
-  // Filtrado mejorado
+  useEffect(() => {
+    if (isRentConfirmed) {
+      console.log('✅ Agente rentado exitosamente')
+      setTimeout(() => {
+        closeModal()
+      }, 3000)
+    }
+  }, [isRentConfirmed])
+
   const filteredAgents = agents.filter(agent => {
     const matchesSearch =
       agent.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -151,7 +256,6 @@ export default function Home() {
     return matchesSearch && matchesCategory && matchesAvailability
   })
 
-  // Contar agentes disponibles
   const availableCount = agents.filter(a => a.available).length
 
   return (
@@ -200,7 +304,6 @@ export default function Home() {
               </button>
             </div>
 
-            {/* Estadísticas rápidas */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-16 max-w-4xl mx-auto">
               <div className="bg-white/10 backdrop-blur-md rounded-xl p-6 border border-white/20">
                 <p className="text-4xl font-bold mb-2">{agents.length}</p>
@@ -231,7 +334,6 @@ export default function Home() {
             </p>
           </div>
 
-          {/* Filtros mejorados */}
           <div className="flex flex-col gap-4 mb-8">
             <div className="flex flex-col md:flex-row gap-4">
               <div className="flex-1 relative">
@@ -258,7 +360,6 @@ export default function Home() {
               </select>
             </div>
             
-            {/* Toggle para mostrar solo disponibles */}
             <div className="flex items-center gap-3">
               <label className="flex items-center gap-3 cursor-pointer bg-white px-4 py-3 rounded-xl border-2 border-gray-300 hover:border-blue-400 transition-all shadow-sm">
                 <input
@@ -274,7 +375,6 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Contador de resultados */}
           {filteredAgents.length > 0 && (
             <div className="mb-6">
               <p className="text-gray-700 font-semibold text-lg">
@@ -290,7 +390,6 @@ export default function Home() {
                 key={agent.id.toString()} 
                 className="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border-2 border-gray-100 overflow-hidden group flex flex-col h-full"
               >
-                {/* Header de la card */}
                 <div className="bg-gradient-to-br from-blue-500 to-purple-600 p-6 relative flex-shrink-0">
                   <div className="absolute top-4 right-4 flex flex-col gap-2">
                     <span className="bg-white text-blue-700 px-3 py-1.5 rounded-full text-xs font-bold shadow-lg">
@@ -307,6 +406,8 @@ export default function Home() {
                         No disponible
                       </span>
                     )}
+                    {/* Estado de rentado */}
+                    <RentalStatus agentId={agent.id} />
                   </div>
                   <div className="w-20 h-20 bg-white rounded-xl flex items-center justify-center mb-3 shadow-lg">
                     <Bot className="h-10 w-10 text-blue-600" />
@@ -317,7 +418,6 @@ export default function Home() {
                   </div>
                 </div>
 
-                {/* Contenido de la card */}
                 <div className="p-6 flex flex-col flex-grow">
                   <h3 className="text-xl font-bold text-gray-900 mb-3 group-hover:text-blue-600 transition-colors h-14 line-clamp-2">
                     {agent.name}
@@ -327,7 +427,6 @@ export default function Home() {
                     {agent.description}
                   </p>
 
-                  {/* Tags */}
                   <div className="flex flex-wrap gap-2 mb-5 h-16 overflow-hidden">
                     {agent.tags.slice(0, 3).map((tag: string) => (
                       <span 
@@ -344,13 +443,11 @@ export default function Home() {
 
                   <div className="flex-grow"></div>
 
-                  {/* Información de creación */}
                   <div className="mb-4 flex items-center gap-2 text-sm text-gray-600">
                     <Clock className="h-4 w-4" />
                     <span className="font-semibold">{getTimeSinceCreation(agent.createdAt)}</span>
                   </div>
 
-                  {/* Footer con precio - solo precio base */}
                   <div className="flex items-center justify-between mb-5 pt-4 border-t-2 border-gray-100">
                     <div>
                       <p className="text-xs text-gray-600 font-semibold mb-1">Precio Base</p>
@@ -379,7 +476,6 @@ export default function Home() {
             ))}
           </div>
 
-          {/* Estado vacío */}
           {filteredAgents.length === 0 && (
             <div className="text-center py-20 bg-white rounded-2xl shadow-lg border-2 border-dashed border-gray-300">
               <div className="bg-gradient-to-br from-gray-100 to-gray-200 w-32 h-32 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -406,7 +502,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Modal de Detalles */}
+      {/* Modal de Detalles con Renta Integrada */}
       {isModalOpen && selectedAgent && (
         <div className="fixed inset-0 z-50 overflow-y-auto">
           <div 
@@ -447,6 +543,8 @@ export default function Home() {
                           No disponible
                         </span>
                       )}
+                      {/* Estado de rentado en el modal */}
+                      <RentalStatusModal agentId={selectedAgent.id} />
                     </div>
                     <div className="flex items-center gap-4 text-white flex-wrap">
                       <div className="flex items-center gap-1 bg-white/20 px-3 py-1 rounded-full">
@@ -561,66 +659,151 @@ export default function Home() {
                   </div>
                 </div>
 
-                {/* Botones de acción */}
-                <div className="flex flex-col gap-3 pt-6 border-t-2 border-gray-200">
-                  {/* Botón principal de rentar */}
-                  <div className="flex gap-3">
-                    <Link
-                      href={`/agent/${selectedAgent.id}`}
-                      className={`flex-1 px-6 py-4 rounded-xl font-bold transition-all shadow-lg flex items-center justify-center gap-2 text-lg ${
-                        selectedAgent.available
-                          ? 'bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 text-white hover:shadow-2xl'
-                          : 'bg-gray-300 text-gray-600 cursor-not-allowed'
-                      }`}
-                    >
-                      {selectedAgent.available ? (
-                        <>
-                          🚀 Rentar Agente Ahora
-                          <ExternalLink className="h-5 w-5" />
-                        </>
-                      ) : (
-                        <>No Disponible</>
-                      )}
-                    </Link>
-                    <button
-                      onClick={closeModal}
-                      className="px-6 py-4 border-2 border-gray-400 text-gray-900 rounded-xl font-bold hover:bg-gray-100 transition-colors text-lg"
-                    >
-                      Cerrar
-                    </button>
-                  </div>
+                {/* Sección de Renta Integrada */}
+                <div className="pt-6 border-t-2 border-gray-200">
+                  <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <div className="w-1.5 h-8 bg-gradient-to-b from-blue-600 to-purple-600 rounded-full" />
+                    💳 Rentar este Agente
+                  </h3>
 
-                  {/* Botón de cambiar disponibilidad (solo para testing) */}
-                  <button
-                    onClick={handleToggleAvailability}
-                    disabled={isToggling || isConfirmingToggle}
-                    className={`w-full px-6 py-3 rounded-xl font-bold transition-all flex items-center justify-center gap-2 ${
-                      isToggling || isConfirmingToggle
-                        ? 'bg-gray-400 text-white cursor-not-allowed'
-                        : selectedAgent.available
-                        ? 'bg-red-500 hover:bg-red-600 text-white shadow-md hover:shadow-lg'
-                        : 'bg-green-500 hover:bg-green-600 text-white shadow-md hover:shadow-lg'
-                    }`}
-                  >
-                    <Power className="h-5 w-5" />
-                    {isToggling && 'Preparando transacción...'}
-                    {isConfirmingToggle && 'Confirmando en blockchain...'}
-                    {!isToggling && !isConfirmingToggle && (
-                      selectedAgent.available ? 'Desactivar Agente' : 'Activar Agente'
-                    )}
-                  </button>
-                  
-                  {/* Mensaje de estado */}
-                  {(isToggling || isConfirmingToggle) && (
-                    <p className="text-sm text-center text-gray-600 bg-yellow-50 border border-yellow-200 rounded-lg py-2 px-4">
-                      ⏳ Por favor confirma la transacción en tu wallet...
-                    </p>
-                  )}
-                  
-                  {isToggleConfirmed && (
-                    <p className="text-sm text-center text-green-700 bg-green-50 border border-green-200 rounded-lg py-2 px-4 font-semibold">
-                      ✅ Estado actualizado exitosamente! Recarga la página para ver cambios.
-                    </p>
+                  {selectedAgent.available ? (
+                    <div className="space-y-4">
+                      {/* Input de minutos */}
+                      <div>
+                        <label className="block text-base font-bold text-gray-900 mb-2">
+                          ⏰ Tiempo de Renta (minutos)
+                        </label>
+                        <input
+                          type="number"
+                          min="1"
+                          step="1"
+                          value={rentalMinutes}
+                          onChange={(e) => setRentalMinutes(e.target.value)}
+                          placeholder="60"
+                          className="w-full px-6 py-3 border-2 border-gray-300 rounded-xl focus:ring-4 focus:ring-blue-200 focus:border-blue-500 transition-all text-gray-900 font-bold text-xl text-center"
+                        />
+                        
+                        {/* Botones rápidos */}
+                        <div className="grid grid-cols-4 gap-2 mt-2">
+                          <button
+                            onClick={() => setRentalMinutes('30')}
+                            className="px-2 py-1.5 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg font-bold text-xs transition-all"
+                          >
+                            30 min
+                          </button>
+                          <button
+                            onClick={() => setRentalMinutes('60')}
+                            className="px-2 py-1.5 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg font-bold text-xs transition-all"
+                          >
+                            1 hora
+                          </button>
+                          <button
+                            onClick={() => setRentalMinutes('180')}
+                            className="px-2 py-1.5 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg font-bold text-xs transition-all"
+                          >
+                            3 horas
+                          </button>
+                          <button
+                            onClick={() => setRentalMinutes('1440')}
+                            className="px-2 py-1.5 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg font-bold text-xs transition-all"
+                          >
+                            1 día
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Resumen del costo */}
+                      <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-4 border-2 border-green-200">
+                        <h4 className="text-base font-bold text-gray-900 mb-3">📊 Resumen del Costo</h4>
+                        
+                        <div className="space-y-2">
+                          <div className="flex justify-between items-center text-sm">
+                            <span className="text-gray-700 font-semibold">Precio Base:</span>
+                            <span className="text-gray-900 font-bold">{formatEther(selectedAgent.basePrice)} AVAX</span>
+                          </div>
+                          
+                          <div className="flex justify-between items-center text-sm">
+                            <span className="text-gray-700 font-semibold">Tiempo:</span>
+                            <span className="text-gray-900 font-bold">
+                              {rentalMinutes} min ({(parseInt(rentalMinutes || '0') / 60).toFixed(2)} h)
+                            </span>
+                          </div>
+                          
+                          <div className="flex justify-between items-center text-sm">
+                            <span className="text-gray-700 font-semibold">Costo por Tiempo:</span>
+                            <span className="text-gray-900 font-bold">
+                              {rentalMinutes && !isNaN(parseInt(rentalMinutes)) 
+                                ? formatEther(selectedAgent.pricePerSecond * BigInt(parseInt(rentalMinutes) * 60))
+                                : '0'} AVAX
+                            </span>
+                          </div>
+                          
+                          <div className="border-t-2 border-green-300 pt-2 mt-2">
+                            <div className="flex justify-between items-center">
+                              <span className="text-lg font-bold text-gray-900">Total:</span>
+                              <span className="text-2xl font-bold text-green-700">
+                                {calculateEstimatedCost()} AVAX
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Mensajes de estado */}
+                      {(isRenting || isConfirmingRent) && (
+                        <div className="p-3 bg-yellow-50 border-2 border-yellow-200 rounded-xl">
+                          <p className="text-center text-yellow-800 font-semibold text-sm">
+                            ⏳ {isRenting ? 'Preparando transacción...' : 'Confirmando en blockchain...'}
+                          </p>
+                        </div>
+                      )}
+
+                      {isRentConfirmed && (
+                        <div className="p-3 bg-green-50 border-2 border-green-200 rounded-xl">
+                          <p className="text-center text-green-800 font-bold">
+                            ✅ ¡Agente rentado exitosamente!
+                          </p>
+                        </div>
+                      )}
+
+                      {/* Botones de acción */}
+                      <div className="flex gap-3">
+                        <button
+                          onClick={handleRentAgent}
+                          disabled={isRenting || isConfirmingRent || !rentalMinutes || parseInt(rentalMinutes) <= 0}
+                          className="flex-1 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 hover:from-blue-700 hover:to-purple-700 text-white px-6 py-4 rounded-xl font-bold text-lg transition-all shadow-lg hover:shadow-xl disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                        >
+                          {isRenting || isConfirmingRent ? (
+                            <>
+                              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                              Procesando...
+                            </>
+                          ) : (
+                            <>
+                              🚀 Confirmar Renta
+                            </>
+                          )}
+                        </button>
+                        
+                        <button
+                          onClick={closeModal}
+                          disabled={isRenting || isConfirmingRent}
+                          className="px-6 py-4 border-2 border-gray-400 text-gray-900 rounded-xl font-bold hover:bg-gray-100 transition-all text-lg disabled:opacity-50"
+                        >
+                          Cerrar
+                        </button>
+                      </div>
+
+                      <p className="text-xs text-gray-600 text-center">
+                        💡 El pago incluye el precio base más el costo por el tiempo seleccionado
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="bg-red-50 border-2 border-red-200 rounded-xl p-6 text-center">
+                      <XCircle className="h-12 w-12 text-red-500 mx-auto mb-3" />
+                      <p className="text-red-700 font-bold text-lg mb-2">Agente No Disponible</p>
+                      <p className="text-red-600 text-sm">Este agente no está disponible para rentar en este momento</p>
+                    </div>
                   )}
                 </div>
               </div>
