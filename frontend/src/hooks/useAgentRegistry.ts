@@ -224,22 +224,30 @@ export function useSetAgentPrice() {
   }
 }
 
-// Hook para cambiar disponibilidad
+// Hook para cambiar la disponibilidad del agente
 export function useSetAgentAvailability() {
-  const { writeContract, data: hash, error, isPending } = useWriteContract()
-  
-  const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({
-    hash,
-  })
+  const { writeContractAsync, data: hash, error, isPending } = useWriteContract();
+  const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({ hash });
 
   const setAvailability = async (id: number, available: boolean) => {
-    writeContract({
-      address: AGENT_REGISTRY_ADDRESS,
-      abi: AGENT_REGISTRY_ABI,
-      functionName: 'setAvailability',
-      args: [BigInt(id), available],
-    })
-  }
+    if (!id || id <= 0) throw new Error("ID inválido del agente");
+
+    try {
+      // Ejecuta la transacción y espera confirmación
+      const txHash = await writeContractAsync({
+        address: AGENT_REGISTRY_ADDRESS,
+        abi: AGENT_REGISTRY_ABI,
+        functionName: "setAvailability",
+        args: [BigInt(id), available],
+      });
+
+      console.log("✅ Transacción enviada:", txHash);
+      return txHash;
+    } catch (err) {
+      console.error("❌ Error al cambiar disponibilidad:", err);
+      throw err;
+    }
+  };
 
   return {
     setAvailability,
@@ -247,9 +255,10 @@ export function useSetAgentAvailability() {
     error,
     isPending,
     isConfirming,
-    isConfirmed
-  }
+    isConfirmed,
+  };
 }
+
 
 // Hook para retirar ganancias
 export function useWithdrawEarnings() {
