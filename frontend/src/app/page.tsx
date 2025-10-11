@@ -406,61 +406,59 @@ export default function Home() {
   return (
     <Layout>
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 text-white overflow-hidden">
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-20 left-10 w-72 h-72 bg-white rounded-full blur-3xl"></div>
-          <div className="absolute bottom-20 right-10 w-96 h-96 bg-white rounded-full blur-3xl"></div>
+      <section className="relative bg-gradient-to-br from-purple-900 via-purple-700 to-indigo-900 text-white overflow-hidden">
+        <div className="absolute inset-0 opacity-20">
+          <div className="absolute top-20 left-10 w-72 h-72 bg-purple-400 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-20 right-10 w-96 h-96 bg-pink-400 rounded-full blur-3xl"></div>
+          <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-indigo-400 rounded-full blur-3xl"></div>
         </div>
         
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
           <div className="text-center">
             <div className="flex justify-center mb-6">
-              <div className="bg-white/20 backdrop-blur-sm px-6 py-2 rounded-full border border-white/30">
+              <div className="glass border border-purple-300/30 px-6 py-2 rounded-full shadow-lg shadow-purple-500/20">
                 <p className="text-white font-semibold flex items-center gap-2">
-                  <Sparkles className="h-5 w-5" />
+                  <Sparkles className="h-5 w-5 text-purple-300" />
                   Plataforma Descentralizada de IA
                 </p>
               </div>
             </div>
             
             <h1 className="text-5xl md:text-7xl font-extrabold mb-6 leading-tight">
-              Marketplace de <br />
-              <span className="bg-gradient-to-r from-yellow-300 to-orange-400 bg-clip-text text-transparent">
-                Agentes IA
-              </span>
+              Avagent <br />
             </h1>
             
-            <p className="text-xl md:text-2xl mb-10 text-white/90 max-w-3xl mx-auto">
+            <p className="text-xl md:text-2xl mb-10 text-purple-100 max-w-3xl mx-auto">
               Descubre, renta y utiliza los mejores agentes de inteligencia artificial construidos sobre Avalanche
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
                 href="/register"
-                className="bg-white text-blue-700 px-10 py-4 rounded-xl font-bold text-lg hover:bg-gray-100 transition-all transform hover:scale-105 shadow-2xl"
+                className="bg-gradient-to-r from-purple-600 via-purple-700 to-indigo-700 text-white px-10 py-4 rounded-xl font-bold text-lg hover:from-purple-700 hover:via-purple-800 hover:to-indigo-800 transition-all transform hover:scale-105 shadow-xl shadow-purple-500/30 hover:shadow-2xl hover:shadow-purple-500/50"
               >
                 🚀 Registrar Agente
               </Link>
               <button 
                 type='button' 
-                className="border-3 border-white bg-white/10 backdrop-blur-sm text-white px-10 py-4 rounded-xl font-bold text-lg hover:bg-white hover:text-blue-700 transition-all transform hover:scale-105"
+                className="border-2 border-purple-300 glass text-white px-10 py-4 rounded-xl font-bold text-lg hover:bg-purple-700/30 transition-all transform hover:scale-105 shadow-lg"
               >
                 🔍 Explorar Marketplace
               </button>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-16 max-w-4xl mx-auto">
-              <div className="bg-white/10 backdrop-blur-md rounded-xl p-6 border border-white/20">
-                <p className="text-4xl font-bold mb-2">{agents.length}</p>
-                <p className="text-white/80 font-semibold">Agentes Registrados</p>
+              <div className="glass border border-purple-400/30 rounded-xl p-6 shadow-lg shadow-purple-500/20">
+                <p className="text-4xl font-bold mb-2 bg-gradient-to-r from-purple-300 to-pink-300 bg-clip-text text-transparent">{agents.length}</p>
+                <p className="text-purple-200 font-semibold">Agentes Registrados</p>
               </div>
-              <div className="bg-white/10 backdrop-blur-md rounded-xl p-6 border border-white/20">
-                <p className="text-4xl font-bold mb-2">{availableCount}</p>
-                <p className="text-white/80 font-semibold">Disponibles Ahora</p>
+              <div className="glass border border-purple-400/30 rounded-xl p-6 shadow-lg shadow-purple-500/20">
+                <p className="text-4xl font-bold mb-2 bg-gradient-to-r from-purple-300 to-pink-300 bg-clip-text text-transparent">{availableCount}</p>
+                <p className="text-purple-200 font-semibold">Disponibles Ahora</p>
               </div>
-              <div className="bg-white/10 backdrop-blur-md rounded-xl p-6 border border-white/20">
-                <p className="text-4xl font-bold mb-2">100%</p>
-                <p className="text-white/80 font-semibold">Descentralizado</p>
+              <div className="glass border border-purple-400/30 rounded-xl p-6 shadow-lg shadow-purple-500/20">
+                <p className="text-4xl font-bold mb-2 bg-gradient-to-r from-purple-300 to-pink-300 bg-clip-text text-transparent">100%</p>
+                <p className="text-purple-200 font-semibold">Descentralizado</p>
               </div>
             </div>
           </div>
@@ -468,13 +466,13 @@ export default function Home() {
       </section>
 
       {/* Search and Filter Section */}
-      <section className="py-16 bg-gradient-to-b from-gray-50 to-white">
+      <section className="py-16 bg-gradient-to-b from-[#1a0f2e] to-[#0f0820]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+            <h2 className="text-4xl font-bold bg-gradient-to-r from-purple-300 to-pink-300 bg-clip-text text-transparent mb-4">
               Explora Nuestros Agentes IA
             </h2>
-            <p className="text-xl text-gray-600">
+            <p className="text-xl text-purple-200">
               Encuentra el agente perfecto para tus necesidades
             </p>
           </div>
@@ -482,23 +480,23 @@ export default function Home() {
           <div className="flex flex-col gap-4 mb-8">
             <div className="flex flex-col md:flex-row gap-4">
               <div className="flex-1 relative">
-                <Search className="absolute left-4 top-4 h-6 w-6 text-gray-400" />
+                <Search className="absolute left-4 top-4 h-6 w-6 text-purple-400" />
                 <input
                   type="text"
                   placeholder="Buscar por nombre, descripción o capacidades..."
-                  className="w-full pl-14 pr-4 py-4 border-2 border-gray-300 rounded-xl focus:ring-4 focus:ring-blue-200 focus:border-blue-500 transition-all text-gray-900 font-medium placeholder:text-gray-500 shadow-sm"
+                  className="w-full pl-14 pr-4 py-4 glass border border-purple-500/30 rounded-xl focus:ring-4 focus:ring-purple-500/30 focus:border-purple-500 transition-all text-purple-100 font-medium placeholder:text-purple-300 shadow-lg"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
               <select
                 title="Filtrar por categoría"
-                className="px-6 py-4 border-2 border-gray-300 rounded-xl focus:ring-4 focus:ring-blue-200 focus:border-blue-500 bg-white text-gray-900 font-bold shadow-sm cursor-pointer hover:border-blue-400 transition-all"
+                className="px-6 py-4 glass border border-purple-500/30 rounded-xl focus:ring-4 focus:ring-purple-500/30 focus:border-purple-500 text-purple-100 font-bold shadow-lg cursor-pointer hover:border-purple-400 transition-all"
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value)}
               >
                 {categories.map(category => (
-                  <option key={category} value={category} className="font-bold">
+                  <option key={category} value={category} className="font-bold bg-[#1a0f2e] text-purple-100">
                     {category === 'all' ? '🌐 Todas las categorías' : `📁 ${category}`}
                   </option>
                 ))}
@@ -506,14 +504,14 @@ export default function Home() {
             </div>
             
             <div className="flex items-center gap-3">
-              <label className="flex items-center gap-3 cursor-pointer bg-white px-4 py-3 rounded-xl border-2 border-gray-300 hover:border-blue-400 transition-all shadow-sm">
+              <label className="flex items-center gap-3 cursor-pointer glass px-4 py-3 rounded-xl border border-purple-500/30 hover:border-purple-400 transition-all shadow-lg">
                 <input
                   type="checkbox"
                   checked={showAvailableOnly}
                   onChange={(e) => setShowAvailableOnly(e.target.checked)}
-                  className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
+                  className="w-5 h-5 text-purple-600 rounded focus:ring-purple-500"
                 />
-                <span className="font-semibold text-gray-900">
+                <span className="font-semibold text-purple-100">
                   Mostrar solo disponibles ({availableCount})
                 </span>
               </label>
@@ -522,31 +520,48 @@ export default function Home() {
 
           {filteredAgents.length > 0 && (
             <div className="mb-6">
-              <p className="text-gray-700 font-semibold text-lg">
-                📊 Mostrando <span className="text-blue-600 font-bold">{filteredAgents.length}</span> agente{filteredAgents.length !== 1 ? 's' : ''}
+              <p className="text-purple-200 font-semibold text-lg">
+                📊 Mostrando <span className="text-purple-400 font-bold">{filteredAgents.length}</span> agente{filteredAgents.length !== 1 ? 's' : ''}
               </p>
             </div>
           )}
 
           {/* Agents Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-            {filteredAgents.map(agent => (
-              <div 
-                key={agent.id.toString()} 
-                className="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border-2 border-gray-100 overflow-hidden group flex flex-col h-full"
-              >
-                <div className="bg-gradient-to-br from-blue-500 to-purple-600 p-6 relative flex-shrink-0">
+          {isLoading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+              {[...Array(8)].map((_, i) => (
+                <div key={i} className="glass rounded-2xl p-6 border border-purple-500/30 shadow-lg animate-pulse">
+                  <div className="h-48 bg-purple-700/30 rounded-xl mb-4" />
+                  <div className="h-6 bg-purple-700/30 rounded mb-3 w-3/4" />
+                  <div className="h-4 bg-purple-700/30 rounded mb-2" />
+                  <div className="h-4 bg-purple-700/30 rounded mb-4 w-5/6" />
+                  <div className="flex gap-2 mb-4">
+                    <div className="h-6 bg-purple-700/30 rounded-full w-16" />
+                    <div className="h-6 bg-purple-700/30 rounded-full w-20" />
+                  </div>
+                  <div className="h-12 bg-purple-700/30 rounded-xl mt-4" />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+              {filteredAgents.map(agent => (
+                <div 
+                  key={agent.id.toString()} 
+                  className="glass rounded-2xl shadow-lg shadow-purple-500/10 hover:shadow-2xl hover:shadow-purple-500/30 transition-all duration-300 transform hover:-translate-y-2 border border-purple-500/30 overflow-hidden group flex flex-col h-full"
+                >
+                  <div className="bg-gradient-to-br from-purple-700 via-purple-600 to-indigo-700 p-6 relative flex-shrink-0">
                   <div className="absolute top-4 right-4 flex flex-col gap-2">
-                    <span className="bg-white text-blue-700 px-3 py-1.5 rounded-full text-xs font-bold shadow-lg">
+                    <span className="bg-purple-900/80 backdrop-blur-sm text-purple-200 px-3 py-1.5 rounded-full text-xs font-bold shadow-lg border border-purple-400/30">
                       {agent.category}
                     </span>
                     {agent.available ? (
-                      <span className="bg-green-500 text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-lg flex items-center gap-1">
+                      <span className="bg-green-500/90 backdrop-blur-sm text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-lg flex items-center gap-1">
                         <CheckCircle className="h-3 w-3" />
                         Disponible
                       </span>
                     ) : (
-                      <span className="bg-red-500 text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-lg flex items-center gap-1">
+                      <span className="bg-red-500/90 backdrop-blur-sm text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-lg flex items-center gap-1">
                         <XCircle className="h-3 w-3" />
                         No disponible
                       </span>
@@ -554,21 +569,21 @@ export default function Home() {
                     {/* Estado de rentado */}
                     <RentalStatus agentId={agent.id} />
                   </div>
-                  <div className="w-20 h-20 bg-white rounded-xl flex items-center justify-center mb-3 shadow-lg">
-                    <Bot className="h-10 w-10 text-blue-600" />
+                  <div className="w-20 h-20 glass border border-purple-400/30 rounded-xl flex items-center justify-center mb-3 shadow-lg">
+                    <Bot className="h-10 w-10 text-purple-300" />
                   </div>
-                  <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm px-3 py-1.5 rounded-full w-fit">
-                    <Star className="h-4 w-4 text-yellow-300 fill-current" />
-                    <span className="text-sm font-bold text-white">{agent.score.toString()}</span>
+                  <div className="flex items-center gap-2 glass border border-purple-400/30 px-3 py-1.5 rounded-full w-fit shadow-lg">
+                    <Star className="h-4 w-4 text-yellow-400 fill-current" />
+                    <span className="text-sm font-bold text-purple-100">{agent.score.toString()}</span>
                   </div>
                 </div>
 
-                <div className="p-6 flex flex-col flex-grow">
-                  <h3 className="text-xl font-bold text-gray-900 mb-3 group-hover:text-blue-600 transition-colors h-14 line-clamp-2">
+                <div className="p-6 flex flex-col flex-grow bg-gradient-to-b from-[#1a0f2e] to-[#140a24]">
+                  <h3 className="text-xl font-bold text-purple-100 mb-3 group-hover:text-purple-300 transition-colors h-14 line-clamp-2">
                     {agent.name}
                   </h3>
                   
-                  <p className="text-gray-700 text-sm mb-4 line-clamp-3 leading-relaxed h-16">
+                  <p className="text-purple-200 text-sm mb-4 line-clamp-3 leading-relaxed h-16">
                     {agent.description}
                   </p>
 
@@ -576,60 +591,61 @@ export default function Home() {
                     {agent.tags.slice(0, 3).map((tag: string) => (
                       <span 
                         key={tag} 
-                        className="bg-gradient-to-r from-blue-50 to-purple-50 text-blue-700 px-3 py-1 rounded-lg text-xs font-bold border border-blue-200 h-fit"
+                        className="bg-gradient-to-r from-purple-700 to-indigo-700 text-purple-200 px-3 py-1 rounded-lg text-xs font-bold border border-purple-500/30 h-fit"
                       >
                         {tag}
                       </span>
                     ))}
                     {agent.tags.length > 3 && (
-                      <span className="text-xs text-gray-500 font-semibold h-fit">+{agent.tags.length - 3}</span>
+                      <span className="text-xs text-purple-400 font-semibold h-fit">+{agent.tags.length - 3}</span>
                     )}
                   </div>
 
                   <div className="flex-grow"></div>
 
-                  <div className="mb-4 flex items-center gap-2 text-sm text-gray-600">
+                  <div className="mb-4 flex items-center gap-2 text-sm text-purple-300">
                     <Clock className="h-4 w-4" />
                     <span className="font-semibold">{getTimeSinceCreation(agent.createdAt)}</span>
                   </div>
 
-                  <div className="flex items-center justify-between mb-5 pt-4 border-t-2 border-gray-100">
+                  <div className="flex items-center justify-between mb-5 pt-4 border-t border-purple-500/30">
                     <div>
-                      <p className="text-xs text-gray-600 font-semibold mb-1">Precio Base</p>
-                      <p className="text-2xl font-bold text-gray-900">
+                      <p className="text-xs text-purple-400 font-semibold mb-1">Precio Base</p>
+                      <p className="text-2xl font-bold text-purple-100">
                         {formatEther(agent.basePrice)} 
-                        <span className="text-sm font-bold text-red-600 ml-1">AVAX</span>
+                        <span className="text-sm font-bold text-purple-400 ml-1">AVAX</span>
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className="text-xs text-gray-600 font-semibold mb-1">Score</p>
+                      <p className="text-xs text-purple-400 font-semibold mb-1">Score</p>
                       <div className="flex items-center gap-1">
-                        <Star className="h-4 w-4 text-yellow-500 fill-current" />
-                        <span className="text-lg font-bold text-gray-900">{agent.score.toString()}</span>
+                        <Star className="h-4 w-4 text-yellow-400 fill-current" />
+                        <span className="text-lg font-bold text-purple-100">{agent.score.toString()}</span>
                       </div>
                     </div>
                   </div>
 
                   <button
                     onClick={() => openModal(agent)}
-                    className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-3.5 rounded-xl font-bold hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl transform hover:scale-105"
+                    className="w-full bg-gradient-to-r from-purple-600 via-purple-700 to-indigo-700 text-white px-4 py-3.5 rounded-xl font-bold hover:from-purple-700 hover:via-purple-800 hover:to-indigo-800 transition-all shadow-lg shadow-purple-500/30 hover:shadow-xl hover:shadow-purple-500/50 transform hover:scale-105"
                   >
                     Ver Detalles Completos
                   </button>
                 </div>
               </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
 
-          {filteredAgents.length === 0 && (
-            <div className="text-center py-20 bg-white rounded-2xl shadow-lg border-2 border-dashed border-gray-300">
-              <div className="bg-gradient-to-br from-gray-100 to-gray-200 w-32 h-32 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Bot className="h-16 w-16 text-gray-400" />
+          {filteredAgents.length === 0 && !isLoading && (
+            <div className="text-center py-20 glass rounded-2xl shadow-lg border-2 border-dashed border-purple-500/30">
+              <div className="bg-gradient-to-br from-purple-900 to-indigo-900 w-32 h-32 rounded-full flex items-center justify-center mx-auto mb-6 border border-purple-500/30">
+                <Bot className="h-16 w-16 text-purple-300" />
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-3">
+              <h3 className="text-2xl font-bold text-purple-100 mb-3">
                 No se encontraron agentes
               </h3>
-              <p className="text-gray-600 text-lg mb-6">
+              <p className="text-purple-200 text-lg mb-6">
                 Intenta ajustar tus filtros de búsqueda o explorar otras categorías
               </p>
               <button
@@ -638,7 +654,7 @@ export default function Home() {
                   setSelectedCategory('all')
                   setShowAvailableOnly(false)
                 }}
-                className="bg-blue-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-blue-700 transition-colors"
+                className="bg-gradient-to-r from-purple-600 via-purple-700 to-indigo-700 text-white px-8 py-3 rounded-xl font-bold hover:from-purple-700 hover:via-purple-800 hover:to-indigo-800 transition-all shadow-lg shadow-purple-500/30"
               >
                 Limpiar Filtros
               </button>

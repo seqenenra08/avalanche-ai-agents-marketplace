@@ -173,16 +173,16 @@ export default function MyAgents() {
   if (!address) {
     return (
       <Layout>
-        <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white py-16">
+        <div className="min-h-screen bg-gradient-to-b from-[#1a0f2e] to-[#0f0820] py-16">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center py-20 bg-white rounded-2xl shadow-lg border-2 border-gray-200">
-              <div className="bg-gradient-to-br from-blue-100 to-purple-100 w-32 h-32 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Bot className="h-16 w-16 text-blue-600" />
+            <div className="text-center py-20 glass rounded-2xl shadow-lg border border-purple-500/30">
+              <div className="bg-gradient-to-br from-purple-900 to-indigo-900 w-32 h-32 rounded-full flex items-center justify-center mx-auto mb-6 border border-purple-500/30">
+                <Bot className="h-16 w-16 text-purple-300" />
               </div>
-              <h2 className="text-3xl font-bold text-gray-900 mb-4">
+              <h2 className="text-3xl font-bold text-purple-100 mb-4">
                 Conecta tu Wallet
               </h2>
-              <p className="text-xl text-gray-600 mb-8">
+              <p className="text-xl text-purple-200 mb-8">
                 Para ver y gestionar tus agentes, necesitas conectar tu wallet
               </p>
             </div>
@@ -194,9 +194,9 @@ export default function MyAgents() {
 
   return (
     <Layout>
-      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+      <div className="min-h-screen bg-gradient-to-b from-[#1a0f2e] to-[#0f0820]">
         {/* Header Section */}
-        <section className="bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 text-white py-16">
+        <section className="bg-gradient-to-br from-purple-900 via-purple-700 to-indigo-900 text-white py-16">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between mb-8">
               <div>
@@ -207,7 +207,7 @@ export default function MyAgents() {
               </div>
               <Link
                 href="/register"
-                className="bg-white text-blue-700 px-8 py-4 rounded-xl font-bold text-lg hover:bg-gray-100 transition-all transform hover:scale-105 shadow-2xl"
+                className="bg-gradient-to-r from-purple-600 via-purple-700 to-indigo-700 text-white px-8 py-4 rounded-xl font-bold text-lg hover:from-purple-700 hover:via-purple-800 hover:to-indigo-800 transition-all transform hover:scale-105 shadow-xl shadow-purple-500/30 hover:shadow-2xl hover:shadow-purple-500/50"
               >
                 + Registrar Nuevo
               </Link>
@@ -215,41 +215,41 @@ export default function MyAgents() {
 
             {/* Estadísticas */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-              <div className="bg-white/10 backdrop-blur-md rounded-xl p-6 border border-white/20">
+              <div className="glass border border-purple-400/30 rounded-xl p-6 shadow-lg shadow-purple-500/20">
                 <div className="flex items-center justify-between mb-2">
-                  <p className="text-white/80 font-semibold">Total Agentes</p>
-                  <Bot className="h-6 w-6 text-white/60" />
+                  <p className="text-purple-200 font-semibold">Total Agentes</p>
+                  <Bot className="h-6 w-6 text-purple-400" />
                 </div>
-                <p className="text-4xl font-bold">{totalAgents}</p>
+                <p className="text-4xl font-bold text-purple-100">{totalAgents}</p>
               </div>
               
-              <div className="bg-white/10 backdrop-blur-md rounded-xl p-6 border border-white/20">
+              <div className="glass border border-green-500/30 rounded-xl p-6 shadow-lg shadow-green-500/20">
                 <div className="flex items-center justify-between mb-2">
-                  <p className="text-white/80 font-semibold">Activos</p>
-                  <CheckCircle className="h-6 w-6 text-green-300" />
+                  <p className="text-purple-200 font-semibold">Activos</p>
+                  <CheckCircle className="h-6 w-6 text-green-400" />
                 </div>
                 <p className="text-4xl font-bold text-green-300">{activeAgents}</p>
               </div>
               
-              <div className="bg-white/10 backdrop-blur-md rounded-xl p-6 border border-white/20">
+              <div className="glass border border-red-500/30 rounded-xl p-6 shadow-lg shadow-red-500/20">
                 <div className="flex items-center justify-between mb-2">
-                  <p className="text-white/80 font-semibold">Inactivos</p>
-                  <XCircle className="h-6 w-6 text-red-300" />
+                  <p className="text-purple-200 font-semibold">Inactivos</p>
+                  <XCircle className="h-6 w-6 text-red-400" />
                 </div>
                 <p className="text-4xl font-bold text-red-300">{totalAgents - activeAgents}</p>
               </div>
               
-              <div className="bg-white/10 backdrop-blur-md rounded-xl p-6 border border-white/20">
+              <div className="glass border border-yellow-500/30 rounded-xl p-6 shadow-lg shadow-yellow-500/20">
                 <div className="flex items-center justify-between mb-2">
-                  <p className="text-white/80 font-semibold">Ganancias</p>
-                  <DollarSign className="h-6 w-6 text-yellow-300" />
+                  <p className="text-purple-200 font-semibold">Ganancias</p>
+                  <DollarSign className="h-6 w-6 text-yellow-400" />
                 </div>
                 <p className="text-3xl font-bold text-yellow-300">{totalEarnings} AVAX</p>
                 {Number(totalEarnings) > 0 && (
                   <button
                     onClick={handleWithdraw}
                     disabled={isWithdrawing || isConfirmingWithdraw}
-                    className="mt-3 w-full bg-yellow-400 text-gray-900 px-4 py-2 rounded-lg font-bold text-sm hover:bg-yellow-300 transition-all disabled:bg-gray-400 disabled:cursor-not-allowed"
+                    className="mt-3 w-full bg-gradient-to-r from-yellow-500 to-orange-500 text-white px-4 py-2 rounded-lg font-bold text-sm hover:from-yellow-600 hover:to-orange-600 transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isWithdrawing || isConfirmingWithdraw ? '⏳ Retirando...' : '💰 Retirar'}
                   </button>
@@ -264,23 +264,23 @@ export default function MyAgents() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             {isLoading ? (
               <div className="text-center py-20">
-                <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mx-auto mb-4"></div>
-                <p className="text-xl text-gray-600 font-semibold">Cargando tus agentes...</p>
+                <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-purple-500 mx-auto mb-4"></div>
+                <p className="text-xl text-purple-200 font-semibold">Cargando tus agentes...</p>
               </div>
             ) : myAgents.length === 0 ? (
-              <div className="text-center py-20 bg-white rounded-2xl shadow-lg border-2 border-dashed border-gray-300">
-                <div className="bg-gradient-to-br from-gray-100 to-gray-200 w-32 h-32 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <Bot className="h-16 w-16 text-gray-400" />
+              <div className="text-center py-20 glass rounded-2xl shadow-lg border-2 border-dashed border-purple-500/30">
+                <div className="bg-gradient-to-br from-purple-900 to-indigo-900 w-32 h-32 rounded-full flex items-center justify-center mx-auto mb-6 border border-purple-500/30">
+                  <Bot className="h-16 w-16 text-purple-300" />
                 </div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-3">
+                <h3 className="text-2xl font-bold text-purple-100 mb-3">
                   No tienes agentes registrados
                 </h3>
-                <p className="text-gray-600 text-lg mb-6">
+                <p className="text-purple-200 text-lg mb-6">
                   Comienza registrando tu primer agente de IA
                 </p>
                 <Link
                   href="/register"
-                  className="inline-block bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-3 rounded-xl font-bold hover:shadow-xl transition-all"
+                  className="inline-block bg-gradient-to-r from-purple-600 via-purple-700 to-indigo-700 text-white px-8 py-3 rounded-xl font-bold hover:from-purple-700 hover:via-purple-800 hover:to-indigo-800 hover:shadow-xl hover:shadow-purple-500/50 transition-all shadow-lg shadow-purple-500/30"
                 >
                   + Registrar Primer Agente
                 </Link>
@@ -290,67 +290,67 @@ export default function MyAgents() {
                 {myAgents.map(agent => (
                   <div 
                     key={agent.id.toString()}
-                    className="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 border-2 border-gray-100 overflow-hidden"
+                    className="glass rounded-2xl shadow-lg shadow-purple-500/10 hover:shadow-2xl hover:shadow-purple-500/30 transition-all duration-300 border border-purple-500/30 overflow-hidden"
                   >
                     {/* Header */}
-                    <div className="bg-gradient-to-br from-blue-500 to-purple-600 p-6 relative">
+                    <div className="bg-gradient-to-br from-purple-700 via-purple-600 to-indigo-700 p-6 relative">
                       <div className="absolute top-4 right-4 flex gap-2">
-                        <span className="bg-white text-blue-700 px-3 py-1.5 rounded-full text-xs font-bold shadow-lg">
+                        <span className="bg-purple-900/80 backdrop-blur-sm text-purple-200 px-3 py-1.5 rounded-full text-xs font-bold shadow-lg border border-purple-400/30">
                           {agent.category}
                         </span>
                         {agent.available ? (
-                          <span className="bg-green-500 text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-lg flex items-center gap-1">
+                          <span className="bg-green-500/90 backdrop-blur-sm text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-lg flex items-center gap-1">
                             <CheckCircle className="h-3 w-3" />
                             Activo
                           </span>
                         ) : (
-                          <span className="bg-red-500 text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-lg flex items-center gap-1">
+                          <span className="bg-red-500/90 backdrop-blur-sm text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-lg flex items-center gap-1">
                             <XCircle className="h-3 w-3" />
                             Inactivo
                           </span>
                         )}
                       </div>
                       
-                      <div className="w-20 h-20 bg-white rounded-xl flex items-center justify-center mb-3 shadow-lg">
-                        <Bot className="h-10 w-10 text-blue-600" />
+                      <div className="w-20 h-20 glass border border-purple-400/30 rounded-xl flex items-center justify-center mb-3 shadow-lg">
+                        <Bot className="h-10 w-10 text-purple-300" />
                       </div>
                       
-                      <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm px-3 py-1.5 rounded-full w-fit">
-                        <Star className="h-4 w-4 text-yellow-300 fill-current" />
-                        <span className="text-sm font-bold text-white">{agent.score.toString()}</span>
+                      <div className="flex items-center gap-2 glass border border-purple-400/30 px-3 py-1.5 rounded-full w-fit shadow-lg">
+                        <Star className="h-4 w-4 text-yellow-400 fill-current" />
+                        <span className="text-sm font-bold text-purple-100">{agent.score.toString()}</span>
                       </div>
                     </div>
 
                     {/* Content */}
-                    <div className="p-6">
-                      <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                    <div className="p-6 bg-gradient-to-b from-[#1a0f2e] to-[#140a24]">
+                      <h3 className="text-2xl font-bold text-purple-100 mb-2">
                         {agent.name}
                       </h3>
                       
-                      <p className="text-gray-600 text-sm mb-4 line-clamp-2">
+                      <p className="text-purple-200 text-sm mb-4 line-clamp-2">
                         {agent.description}
                       </p>
 
                       {/* Stats */}
                       <div className="grid grid-cols-2 gap-4 mb-6">
-                        <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
-                          <p className="text-xs text-gray-600 font-semibold mb-1">Precio Base</p>
-                          <p className="text-lg font-bold text-gray-900">
+                        <div className="glass border border-purple-500/30 rounded-lg p-3">
+                          <p className="text-xs text-purple-400 font-semibold mb-1">Precio Base</p>
+                          <p className="text-lg font-bold text-purple-100">
                             {formatEther(agent.basePrice)} AVAX
                           </p>
                         </div>
-                        <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
-                          <p className="text-xs text-gray-600 font-semibold mb-1">Por Segundo</p>
-                          <p className="text-sm font-bold text-purple-700">
+                        <div className="glass border border-purple-500/30 rounded-lg p-3">
+                          <p className="text-xs text-purple-400 font-semibold mb-1">Por Segundo</p>
+                          <p className="text-sm font-bold text-purple-300">
                             {formatPricePerSecond(agent.pricePerSecond).value}
                           </p>
-                          <p className="text-xs text-purple-600 font-semibold">
+                          <p className="text-xs text-purple-400 font-semibold">
                             {formatPricePerSecond(agent.pricePerSecond).unit}
                           </p>
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-2 text-sm text-gray-600 mb-4">
+                      <div className="flex items-center gap-2 text-sm text-purple-300 mb-4">
                         <Calendar className="h-4 w-4" />
                         <span className="font-semibold">Creado: {formatDate(agent.createdAt)}</span>
                       </div>
@@ -360,12 +360,12 @@ export default function MyAgents() {
                         <button
                           onClick={() => handleToggleAvailability(agent)}
                           disabled={isTogglingAvailability || isConfirmingAvailability}
-                          className={`flex-1 px-4 py-3 rounded-xl font-bold transition-all flex items-center justify-center gap-2 ${
+                          className={`flex-1 px-4 py-3 rounded-xl font-bold transition-all flex items-center justify-center gap-2 shadow-lg ${
                             isTogglingAvailability || isConfirmingAvailability
-                              ? 'bg-gray-400 text-white cursor-not-allowed'
+                              ? 'bg-gray-700 text-gray-300 cursor-not-allowed'
                               : agent.available
-                              ? 'bg-red-500 hover:bg-red-600 text-white'
-                              : 'bg-green-500 hover:bg-green-600 text-white'
+                              ? 'bg-red-600 hover:bg-red-700 text-white shadow-red-500/30 hover:shadow-red-500/50'
+                              : 'bg-green-600 hover:bg-green-700 text-white shadow-green-500/30 hover:shadow-green-500/50'
                           }`}
                         >
                           <Power className="h-4 w-4" />
@@ -374,7 +374,7 @@ export default function MyAgents() {
                         
                         <button
                           onClick={() => handleOpenEditModal(agent)}
-                          className="flex-1 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold transition-all flex items-center justify-center gap-2"
+                          className="flex-1 px-4 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-xl font-bold transition-all flex items-center justify-center gap-2 shadow-lg shadow-purple-500/30 hover:shadow-purple-500/50"
                         >
                           <Edit className="h-4 w-4" />
                           Editar Precio
@@ -383,7 +383,7 @@ export default function MyAgents() {
 
                       <button
                         onClick={() => handleOpenDetailsModal(agent)}
-                        className="mt-3 w-full px-4 py-3 border-2 border-gray-300 text-gray-900 rounded-xl font-bold hover:bg-gray-50 transition-all flex items-center justify-center gap-2"
+                        className="mt-3 w-full px-4 py-3 border border-purple-500/30 glass text-purple-100 rounded-xl font-bold hover:bg-purple-900/30 transition-all flex items-center justify-center gap-2"
                       >
                         <Eye className="h-4 w-4" />
                         Ver Detalles

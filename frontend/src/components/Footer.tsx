@@ -20,7 +20,7 @@ export function Footer() {
               </div>
               <div>
                 <span className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-                  AI Agents
+                  Avagent
                 </span>
                 <p className="text-sm text-gray-400 font-semibold">Marketplace</p>
               </div>
@@ -170,7 +170,7 @@ export function Footer() {
           <div className="flex items-center gap-2">
             <p className="text-gray-400 font-medium">
               © {new Date().getFullYear()} 
-              <span className="text-white font-bold mx-1">AI Agents Marketplace</span>
+              <span className="text-white font-bold mx-1">Avagent Marketplace</span>
             </p>
             <span className="text-gray-600">•</span>
             <p className="text-gray-400 font-medium">
