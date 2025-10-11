@@ -197,18 +197,6 @@ AgentRegistry deployed to: 0x1234567890abcdef...
 **Importante:** Copia esta dirección y actualízala en:
 - `frontend/.env.local` → `NEXT_PUBLIC_AGENT_REGISTRY_ADDRESS`
 - `frontend/src/hooks/useAgentRegistry.ts` → `AGENT_REGISTRY_ADDRESS`
-
-## Testing
-
-```bash
-# Ejecutar todos los tests
-npx hardhat test
-
-# Test con reporte de gas
-REPORT_GAS=true npx hardhat test
-
-# Test específico
-npx hardhat test test/AgentRegistry.test.js
 ```
 
 ## Eventos del Contrato

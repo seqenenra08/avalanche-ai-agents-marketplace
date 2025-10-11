@@ -266,20 +266,6 @@ Ver documentación completa en [`gateway/README.md`](gateway/README.md)
 
 ---
 
-## Testing
-
-### Gateway
-```bash
-# Health check
-curl http://localhost:4000/health
-
-# Upload a IPFS
-curl -X POST http://localhost:4000/upload \
-  -H "x-api-key: tu_api_key" \
-  -H "Content-Type: application/json" \
-  -d '{"name": "Test Agent", "description": "Test"}'
-```
-
 ### Frontend
 ```bash
 cd frontend

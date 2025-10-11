@@ -223,19 +223,6 @@ Una vez que tu agente esté desplegado y accesible:
 4. **Confirma la transacción** en Metamask
 
 5. **¡Listo!** Tu agente estará disponible en el marketplace
-
-## Testing del Agente
-
-### Test Local
-
-```bash
-# Inicia tu agente
-npm start
-
-# En otra terminal, prueba el endpoint
-curl -X POST http://localhost:3000/api \
-  -H "Content-Type: application/json" \
-  -d '{"query": "Hola, ¿cómo estás?"}'
 ```
 
 ### Test con el Gateway
