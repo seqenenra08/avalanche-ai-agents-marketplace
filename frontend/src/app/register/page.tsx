@@ -33,7 +33,7 @@ export default function AgentForm() {
     documentation: '',
     version: '1.0.0',
     tags: '',
-    pricePerHour: '',
+    pricePerSecond: '',
     basePrice: '',
   })
 
@@ -112,14 +112,7 @@ export default function AgentForm() {
       setStatus('registering');
       setMessage('Registrando agente en blockchain...');
 
-      const pricePerSecond = parseUnits(
-        (parseFloat(formData.pricePerHour) / 3600).toFixed(18),
-        18
-      );
-
-      console.log('💰 pricePerSecond:', pricePerSecond.toString());
-
-      await registerAgent(ipfsHash, pricePerSecond.toString(), (formData.basePrice || "0").toString());
+      await registerAgent(ipfsHash, formData.pricePerSecond, formData.basePrice || "0");
 
       setStatus('success');
       setMessage('Agente registrado exitosamente 🎉');
@@ -323,23 +316,23 @@ export default function AgentForm() {
                 </h3>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                  {/* Precio por hora */}
+                  {/* Precio por segundo */}
                   <div className="bg-gradient-to-br from-green-50 to-emerald-50 p-6 rounded-xl border-2 border-green-200">
                     <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
                       <DollarSign className="h-4 w-4 text-green-600" />
-                      Precio por Hora (AVAX) *
+                      Precio por Segundo (AVAX) *
                     </label>
                     <input
                       type="number"
-                      name="pricePerHour"
-                      placeholder="0.01"
-                      step="0.001"
-                      value={formData.pricePerHour}
+                      name="pricePerSecond"
+                      placeholder="0.000001"
+                      step="0.000001"
+                      value={formData.pricePerSecond}
                       onChange={handleChange}
                       className="w-full px-4 py-3.5 rounded-xl bg-white border-2 border-green-300 focus:border-green-500 focus:ring-4 focus:ring-green-200 transition-all text-gray-900 font-bold placeholder:text-gray-500"
                       required
                     />
-                    <p className="text-xs text-gray-600 mt-2 font-semibold">Costo por hora de uso del agente</p>
+                    <p className="text-xs text-gray-600 mt-2 font-semibold">Costo por segundo de uso del agente</p>
                   </div>
 
                   {/* Tarifa base */}

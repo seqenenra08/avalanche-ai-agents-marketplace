@@ -169,7 +169,7 @@ export function Header() {
                 Registrar Agente
               </Link>
               <Link
-                href="/my-agents"
+                href="/myAgents"
                 className="flex items-center gap-3 px-4 py-3 rounded-xl text-base font-bold text-gray-700 hover:text-green-600 hover:bg-green-50 transition-all group"
                 onClick={() => setIsMenuOpen(false)}
               >

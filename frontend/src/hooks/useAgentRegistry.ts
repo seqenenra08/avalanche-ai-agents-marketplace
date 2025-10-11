@@ -117,10 +117,9 @@ export function useRegisterAgent() {
 
   const registerAgent = async (ipfsHash: string, priceInAvaxPerSecond: string, basePrice: string) => {
     const pricePerSecond = parseEther(priceInAvaxPerSecond)
-    const basePriceBigInt = BigInt(Math.floor(parseFloat(basePrice) * 1e18))
+    const basePriceBigInt = parseEther(basePrice || "0")
 
-
-    console.log('🚀 Registrando agente con:', { ipfsHash, pricePerSecond: pricePerSecond.toString(), basePricePerSecond: basePriceBigInt.toString() })
+    console.log('🚀 Registrando agente con:', { ipfsHash, pricePerSecond: pricePerSecond.toString(), basePrice: basePriceBigInt.toString() })
     
     writeContract({
       address: AGENT_REGISTRY_ADDRESS,
