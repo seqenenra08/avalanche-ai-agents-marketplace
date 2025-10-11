@@ -1,9 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Layout } from '@/components/Layout'
-import { useAccount } from 'wagmi'
-import { parseUnits } from 'viem'
+import { useAccount, useBalance } from 'wagmi'
+import { parseUnits, formatEther } from 'viem'
 import { useRegisterAgent } from '@/hooks/useAgentRegistry'
 import { 
   Bot, 
@@ -18,12 +18,18 @@ import {
   Loader2,
   Globe,
   BookOpen,
-  PackageCheck
+  PackageCheck,
+  Wallet
 } from 'lucide-react'
 
 export default function AgentForm() {
   const { address, isConnected } = useAccount()
   const { registerAgent, isPending, isConfirming, isConfirmed, error } = useRegisterAgent()
+  
+  // Obtener balance del usuario
+  const { data: balanceData, isLoading: isLoadingBalance } = useBalance({
+    address: address,
+  })
 
   const [formData, setFormData] = useState({
     name: '',
@@ -39,6 +45,7 @@ export default function AgentForm() {
 
   const [status, setStatus] = useState<'idle' | 'uploading' | 'registering' | 'success' | 'error'>('idle')
   const [message, setMessage] = useState('')
+  const [hasInsufficientFunds, setHasInsufficientFunds] = useState(false)
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target
@@ -48,8 +55,38 @@ export default function AgentForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!isConnected) return alert('Por favor conecta tu wallet primero');
-    if (!address) return alert('No se pudo obtener tu dirección de wallet');
+    if (!isConnected) {
+      setStatus('error');
+      setMessage('Por favor conecta tu wallet primero');
+      return;
+    }
+    
+    if (!address) {
+      setStatus('error');
+      setMessage('No se pudo obtener tu dirección de wallet');
+      return;
+    }
+
+    // Validar que el usuario tenga balance
+    if (!balanceData || balanceData.value === BigInt(0)) {
+      setStatus('error');
+      setMessage('❌ No tienes AVAX en tu wallet. Necesitas fondos para pagar el gas de la transacción.');
+      setHasInsufficientFunds(true);
+      return;
+    }
+
+    // Estimar el gas requerido (aproximadamente 0.01 AVAX para transacciones en Fuji)
+    const minimumBalance = parseUnits('0.01', 18); // 0.01 AVAX
+    
+    if (balanceData.value < minimumBalance) {
+      setStatus('error');
+      setMessage(`❌ Balance insuficiente. Tienes ${formatEther(balanceData.value)} AVAX, pero necesitas al menos 0.01 AVAX para cubrir el gas de la transacción.`);
+      setHasInsufficientFunds(true);
+      return;
+    }
+
+    // Reset insufficient funds flag
+    setHasInsufficientFunds(false);
 
     try {
       setStatus('uploading');
@@ -152,6 +189,69 @@ export default function AgentForm() {
       {/* Form Section */}
       <section className="py-16 bg-gradient-to-b from-gray-50 to-white">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          
+          {/* Balance Info Card */}
+          {isConnected && (
+            <div className={`mb-6 rounded-2xl p-6 border-2 shadow-lg ${
+              hasInsufficientFunds || (balanceData && balanceData.value < parseUnits('0.01', 18))
+                ? 'bg-red-50 border-red-300'
+                : 'bg-blue-50 border-blue-300'
+            }`}>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className={`p-3 rounded-xl ${
+                    hasInsufficientFunds || (balanceData && balanceData.value < parseUnits('0.01', 18))
+                      ? 'bg-red-100'
+                      : 'bg-blue-100'
+                  }`}>
+                    <Wallet className={`h-6 w-6 ${
+                      hasInsufficientFunds || (balanceData && balanceData.value < parseUnits('0.01', 18))
+                        ? 'text-red-600'
+                        : 'text-blue-600'
+                    }`} />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-white-600">Tu Balance</p>
+                    <p className={`text-2xl font-bold ${
+                      hasInsufficientFunds || (balanceData && balanceData.value < parseUnits('0.01', 18))
+                        ? 'text-red-700'
+                        : 'text-blue-700'
+                    }`}>
+                      {isLoadingBalance ? (
+                        <span className="animate-pulse">Cargando...</span>
+                      ) : balanceData ? (
+                        `${parseFloat(formatEther(balanceData.value)).toFixed(4)} AVAX`
+                      ) : (
+                        '0 AVAX'
+                      )}
+                    </p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm font-semibold text-gray-600">Gas Estimado</p>
+                  <p className="text-lg font-bold text-gray-900">~0.01 AVAX</p>
+                </div>
+              </div>
+              
+              {balanceData && balanceData.value < parseUnits('0.01', 18) && (
+                <div className="mt-4 p-3 bg-red-100 rounded-lg border border-red-200">
+                  <p className="text-sm font-bold text-red-800 flex items-center gap-2">
+                    <AlertCircle className="h-4 w-4" />
+                    Balance insuficiente. Obtén AVAX del faucet de Avalanche Fuji antes de continuar.
+                  </p>
+                  <a
+                    href="https://faucet.avax.network/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-2 inline-block bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-bold text-sm transition-all"
+                  >
+                    🚰 Ir al Faucet de AVAX
+                  </a>
+                </div>
+              )}
+            </div>
+          )}
+
           <div className="bg-white rounded-3xl shadow-2xl border-2 border-gray-200 overflow-hidden">
             {/* Form Header */}
             <div className="bg-gradient-to-r from-blue-50 to-purple-50 px-8 py-6 border-b-2 border-gray-200">
@@ -359,7 +459,14 @@ export default function AgentForm() {
               <div className="pt-6 border-t-2 border-gray-200">
                 <button
                   type="submit"
-                  disabled={isPending || isConfirming || status === 'uploading' || status === 'registering'}
+                  disabled={
+                    isPending || 
+                    isConfirming || 
+                    status === 'uploading' || 
+                    status === 'registering' ||
+                    !balanceData ||
+                    balanceData.value < parseUnits('0.01', 18)
+                  }
                   className="w-full bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 hover:from-blue-700 hover:to-pink-700 text-white px-6 py-5 rounded-xl font-bold text-lg shadow-xl hover:shadow-2xl transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-3"
                 >
                   {(isPending || isConfirming || status === 'uploading' || status === 'registering') ? (
@@ -371,6 +478,11 @@ export default function AgentForm() {
                         {(isPending || isConfirming) && 'Procesando...'}
                       </span>
                     </>
+                  ) : balanceData && balanceData.value < parseUnits('0.01', 18) ? (
+                    <>
+                      <AlertCircle className="h-6 w-6" />
+                      <span>Balance Insuficiente para Registrar</span>
+                    </>
                   ) : (
                     <>
                       <Upload className="h-6 w-6" />
@@ -378,6 +490,14 @@ export default function AgentForm() {
                     </>
                   )}
                 </button>
+                
+                {/* Mensaje adicional de fondos insuficientes */}
+                {balanceData && balanceData.value < parseUnits('0.01', 18) && (
+                  <p className="mt-3 text-center text-sm font-semibold text-red-600 flex items-center justify-center gap-2">
+                    <AlertCircle className="h-4 w-4" />
+                    Necesitas al menos 0.01 AVAX para pagar el gas de la transacción
+                  </p>
+                )}
               </div>
             </form>
           </div>
