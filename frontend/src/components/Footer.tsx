@@ -106,7 +106,7 @@ export function Footer() {
               </li>
               <li>
                 <Link 
-                  href="/my-agents" 
+                  href="/myAgents" 
                   className="text-gray-300 hover:text-white font-medium transition-colors flex items-center gap-2 group"
                 >
                   <span className="w-2 h-2 bg-blue-500 rounded-full group-hover:bg-purple-500 transition-colors"></span>

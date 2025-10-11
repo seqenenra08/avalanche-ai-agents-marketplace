@@ -1,36 +1,227 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Frontend - AI Agents Marketplace
 
-## Getting Started
+Aplicación web Next.js para el marketplace descentralizado de agentes IA en Avalanche.
 
-First, run the development server:
+## Características
 
+- **Marketplace de Agentes**: Explora y renta agentes IA disponibles
+- **Registro de Agentes**: Publica tus propios agentes IA en blockchain
+- **Gestión de Agentes**: Panel para administrar tus agentes (Mis Agentes)
+- **Integración Web3**: Conexión con Metamask y Avalanche Fuji
+- **Sistema de Rentas**: Renta agentes por tiempo con pagos en AVAX
+- **Validación de Balance**: Verifica fondos antes de transacciones
+
+## Stack Tecnológico
+
+- **Next.js 15.5.4** - Framework React con App Router
+- **TypeScript** - Tipado estático
+- **Tailwind CSS v4** - Estilos y diseño
+- **Wagmi 2.17.5** - Hooks para interacción Web3
+- **Viem 2.38.0** - Utilidades Ethereum
+- **React Query** - Gestión de estado y caché
+- **Lucide React** - Iconos
+
+## Configuración
+
+1. Copia el archivo de ejemplo:
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+cp .env.example .env.local
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. Configura las variables de entorno en `.env.local`:
+```env
+# Dirección del smart contract desplegado en Avalanche Fuji
+NEXT_PUBLIC_AGENT_REGISTRY_ADDRESS=0x...
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+# URL del gateway backend
+NEXT_PUBLIC_GATEWAY_URL=http://localhost:4000
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+# API Key para comunicación con el gateway
+NEXT_PUBLIC_MY_API_KEY=tu_clave_secreta
 
-## Learn More
+# RPC de Avalanche Fuji
+NEXT_PUBLIC_AVALANCHE_FUJI_RPC=https://api.avax-test.network/ext/bc/C/rpc
 
-To learn more about Next.js, take a look at the following resources:
+# Gateway IPFS para leer metadata
+NEXT_PUBLIC_IPFS_GATEWAY=https://ipfs.io/ipfs/
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+3. Asegúrate de tener:
+   - Metamask instalado en tu navegador
+   - AVAX en Avalanche Fuji testnet
+   - Gateway backend corriendo en el puerto 4000
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Ejecución
 
-## Deploy on Vercel
+**Modo Desarrollo:**
+```bash
+npm run dev
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+**Modo Producción:**
+```bash
+npm run build
+npm start
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+La aplicación estará disponible en [http://localhost:3000](http://localhost:3000)
+
+## Estructura del Proyecto
+
+```
+frontend/
+├── src/
+│   ├── app/                    # App Router de Next.js
+│   │   ├── page.tsx           # Marketplace (página principal)
+│   │   ├── register/          # Formulario de registro de agentes
+│   │   │   └── page.tsx
+│   │   ├── myAgents/          # Gestión de agentes propios
+│   │   │   └── page.tsx
+│   │   ├── agent/[id]/        # Detalle de agente individual
+│   │   │   └── page.tsx
+│   │   ├── api/               # API Routes
+│   │   │   └── ipfs/upload/   # Upload a IPFS
+│   │   ├── layout.tsx         # Layout raíz
+│   │   └── globals.css        # Estilos globales
+│   │
+│   ├── components/            # Componentes React
+│   │   ├── Header.tsx         # Navegación y conexión wallet
+│   │   ├── Footer.tsx         # Footer del sitio
+│   │   └── Layout.tsx         # Layout wrapper
+│   │
+│   ├── hooks/                 # Custom hooks
+│   │   └── useAgentRegistry.ts # Hooks para smart contract
+│   │
+│   ├── services/              # Servicios externos
+│   │   ├── ipfs.ts           # Servicio IPFS
+│   │   └── gateway.ts        # Servicio gateway
+│   │
+│   ├── config/               # Configuración
+│   │   └── web3modal.ts      # Config de Wagmi
+│   │
+│   ├── contracts/            # ABIs de contratos
+│   │   └── AgentRegistry.ts
+│   │
+│   └── providers/            # Providers de React
+│       └── Web3Provider.tsx
+│
+├── public/                   # Archivos estáticos
+├── next.config.ts           # Configuración de Next.js
+├── tailwind.config.ts       # Configuración de Tailwind
+├── tsconfig.json           # Configuración de TypeScript
+└── package.json            # Dependencias
+```
+
+## Páginas Principales
+
+### 1. **Marketplace** (`/`)
+- Lista todos los agentes registrados
+- Búsqueda y filtros por categoría
+- Ver detalles de cada agente
+- Rentar agentes directamente desde el modal
+
+### 2. **Registrar Agente** (`/register`)
+- Formulario completo de registro
+- Validación de balance AVAX
+- Upload automático a IPFS vía gateway
+- Registro en blockchain
+- Campos: nombre, descripción, endpoint, categoría, precio base, precio por hora
+
+### 3. **Mis Agentes** (`/myAgents`)
+- Lista de agentes propios
+- Activar/Desactivar disponibilidad
+- Editar precios (base y por segundo)
+- Ver estadísticas y ganancias
+- Retirar ganancias acumuladas
+- Modal de detalles completos
+
+### 4. **Detalle de Agente** (`/agent/[id]`)
+- Información completa del agente
+- Estado de renta actual
+- Formulario de renta
+- Cálculo de costos en tiempo real
+
+## Integración Web3
+
+### Conexión de Wallet
+```typescript
+// El componente Header maneja la conexión
+import { useAccount, useConnect, useDisconnect } from 'wagmi'
+
+// Conectar con Metamask (injected connector)
+const { connect } = useConnect()
+connect({ connector: injectedConnector })
+```
+
+### Interacción con Smart Contract
+```typescript
+// Usando hooks personalizados
+import { useRegisterAgent, useRentAgent } from '@/hooks/useAgentRegistry'
+
+// Registrar agente
+const { registerAgent } = useRegisterAgent()
+await registerAgent(ipfsHash, pricePerSecond, basePrice)
+
+// Rentar agente
+const { rentAgent } = useRentAgent()
+await rentAgent(agentId, duration, pricePerSecond, basePrice)
+```
+
+## Personalización de Estilos
+
+El proyecto usa Tailwind CSS v4 con tema personalizado:
+
+```css
+@theme inline {
+  --color-primary-50: #eff6ff;
+  --color-primary-600: #2563eb;
+  /* ... más colores */
+}
+```
+
+## Testing
+
+```bash
+# Verificar compilación
+npm run build
+
+# Linter
+npm run lint
+```
+
+## Solución de Problemas
+
+### Error de webpack con electron
+**Solución:** Ya configurado en `next.config.ts` con fallbacks para módulos node.
+
+### Error de conexión con gateway
+**Solución:** Verifica que el gateway esté corriendo en el puerto 4000 y que la API key coincida.
+
+### Error de transacción en blockchain
+**Solución:** 
+- Verifica que tengas AVAX en Fuji: https://faucet.avax.network
+- Confirma que la dirección del contrato sea correcta
+- Asegúrate de estar en la red Avalanche Fuji
+
+### Balance insuficiente
+**Solución:** El formulario de registro valida automáticamente que tengas al menos 0.01 AVAX para gas.
+
+## Recursos
+
+- [Next.js Docs](https://nextjs.org/docs)
+- [Wagmi Docs](https://wagmi.sh)
+- [Tailwind CSS v4](https://tailwindcss.com/docs)
+- [Avalanche Docs](https://docs.avax.network)
+
+## Flujo de Usuario
+
+1. Usuario conecta wallet con Metamask
+2. Navega el marketplace de agentes
+3. Puede registrar nuevos agentes (requiere AVAX)
+4. Renta agentes por tiempo específico
+5. Gestiona sus propios agentes desde "Mis Agentes"
+6. Retira ganancias acumuladas
+
+---
+
+**Parte del AI Agents Marketplace en Avalanche**

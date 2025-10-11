@@ -12,13 +12,13 @@ verificables en blockchain y sus resultados pueden auditarse públicamente.
 avalanche-ai-agents-marketplace/
 ├── contracts/                 # Smart contracts Solidity
 │   ├── contracts/
-│   │   └── AgentRegistry.sol  # Contrato principal con modelo de renta por tiempo
+│   │   └── AgentRegistry.sol  # Contrato principal con modelo de 
 │   ├── scripts/
 │   │   └── deploy.js         # Script de deployment
 │   └── hardhat.config.ts     # Configuración de Hardhat
 │
 ├── gateway/                   # Backend gateway
-│   ├── index.js              # Servidor Express con endpoints IPFS y ejecución
+│   ├── index.js              # Servidor Express con endpoints IPFS y 
 │   ├── package.json          # Dependencias del gateway
 │   ├── .env.example          # Template de configuración
 │   └── README.md             # Documentación completa del gateway
@@ -53,7 +53,7 @@ avalanche-ai-agents-marketplace/
 
 ---
 
-## 🛠️ Stack Tecnológico
+## Stack Tecnológico
 
 ### Blockchain
 - **Avalanche Fuji Testnet** (Chain ID: 43113)
@@ -84,7 +84,7 @@ avalanche-ai-agents-marketplace/
 
 ---
 
-## 📜 Smart Contract: AgentRegistryRentable
+## Smart Contract: AgentRegistryRentable
 
 ### Características Principales
 
@@ -112,7 +112,7 @@ withdrawEarnings()
 
 ---
 
-## ⚙️ Setup e Instalación
+## Setup e Instalación
 
 ### 1. Requisitos Previos
 - Node.js 18.20+ 
@@ -206,7 +206,7 @@ npm run dev
 
 ---
 
-## 🚀 Uso del Marketplace
+## Uso del Marketplace
 
 ### Para Propietarios de Agentes IA
 
@@ -253,7 +253,7 @@ npm run dev
 
 ---
 
-## 📡 API del Gateway
+## API del Gateway
 
 Ver documentación completa en [`gateway/README.md`](gateway/README.md)
 
@@ -266,7 +266,7 @@ Ver documentación completa en [`gateway/README.md`](gateway/README.md)
 
 ---
 
-## 🧪 Testing
+## Testing
 
 ### Gateway
 ```bash
@@ -288,7 +288,7 @@ npm run build  # Verifica que compile sin errores
 
 ---
 
-## 🔒 Seguridad
+## Seguridad
 
 - **Rate Limiting:** 100 requests por 15 minutos por IP
 - **API Key Authentication:** Todos los endpoints del gateway (excepto /health)
@@ -297,7 +297,7 @@ npm run build  # Verifica que compile sin errores
 
 ---
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
 **"Module not found: electron"**
 - Ya resuelto en `next.config.ts` con webpack fallbacks
@@ -318,7 +318,7 @@ npm run build  # Verifica que compile sin errores
 
 ---
 
-## 📚 Recursos
+## Recursos
 
 - [Avalanche Docs](https://docs.avax.network)
 - [Wagmi Docs](https://wagmi.sh)
@@ -328,36 +328,13 @@ npm run build  # Verifica que compile sin errores
 
 ---
 
-## 🛣️ Roadmap
+## Roadmap
 
 - [x] Smart contract con modelo de renta por tiempo
 - [x] Frontend con Next.js y Wagmi
 - [x] Gateway con IPFS y caché
 - [x] Sistema de seguridad y rate limiting
-- [ ] Implementar agentes IA de ejemplo
-- [ ] Sistema de reputación on-chain
-- [ ] Billing avanzado con tickets
-- [ ] Panel de analytics para propietarios
-- [ ] Integración con más redes de Avalanche
-- [ ] Marketplace de prompts y configuraciones
 
 ---
 
-## 📄 Licencia
-
-MIT License - Ver archivo LICENSE para más detalles
-
----
-
-## 👥 Contribuir
-
-Las contribuciones son bienvenidas! Por favor:
-1. Fork el proyecto
-2. Crea una rama para tu feature (`git checkout -b feature/AmazingFeature`)
-3. Commit tus cambios (`git commit -m 'Add some AmazingFeature'`)
-4. Push a la rama (`git push origin feature/AmazingFeature`)
-5. Abre un Pull Request
-
----
-
-**Desarrollado con ❤️ para la comunidad de Avalanche 🔺**
+**Desarrollado para la comunidad de Avalanche**
