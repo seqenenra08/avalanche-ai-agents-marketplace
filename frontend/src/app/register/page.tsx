@@ -211,7 +211,7 @@ export default function AgentForm() {
                     }`} />
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-white-600">Tu Balance</p>
+                    <p className="text-sm font-semibold text-black">Tu Balance</p>
                     <p className={`text-2xl font-bold ${
                       hasInsufficientFunds || (balanceData && balanceData.value < parseUnits('0.01', 18))
                         ? 'text-red-700'
