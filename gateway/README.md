@@ -195,21 +195,6 @@ El gateway cachea automáticamente las respuestas de los agentes basándose en e
 2. Si existe en caché, se devuelve inmediatamente
 3. Si no existe, se ejecuta el agente y se cachea el resultado
 
-## 🧪 Testing
-
-**Upload a IPFS:**
-```bash
-curl -X POST http://localhost:4000/upload \
-  -H "x-api-key: tu_api_key" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "Test Agent",
-    "description": "Agent de prueba",
-    "endpoint": "https://example.com/api",
-    "category": "Test"
-  }'
-```
-
 **Execute Agent:**
 ```bash
 curl -X POST http://localhost:4000/execute \

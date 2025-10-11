@@ -179,16 +179,6 @@ El proyecto usa Tailwind CSS v4 con tema personalizado:
 }
 ```
 
-## Testing
-
-```bash
-# Verificar compilación
-npm run build
-
-# Linter
-npm run lint
-```
-
 ## Solución de Problemas
 
 ### Error de webpack con electron
