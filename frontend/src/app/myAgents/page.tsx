@@ -50,6 +50,7 @@ export default function MyAgents() {
   const [myAgents, setMyAgents] = useState<AgentWithMetadata[]>([])
   const [selectedAgent, setSelectedAgent] = useState<AgentWithMetadata | null>(null)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false)
   const [newPrice, setNewPrice] = useState('')
   const [newBasePrice, setNewBasePrice] = useState('')
   
@@ -150,6 +151,18 @@ export default function MyAgents() {
 
   const handleWithdraw = async () => {
     await withdrawEarnings()
+  }
+
+  const handleOpenDetailsModal = (agent: AgentWithMetadata) => {
+    setSelectedAgent(agent)
+    setIsDetailsModalOpen(true)
+    document.body.style.overflow = 'hidden'
+  }
+
+  const handleCloseDetailsModal = () => {
+    setIsDetailsModalOpen(false)
+    setSelectedAgent(null)
+    document.body.style.overflow = 'auto'
   }
 
   // Calcular estadísticas
@@ -368,13 +381,13 @@ export default function MyAgents() {
                         </button>
                       </div>
 
-                      <Link
-                        href={`/agent/${agent.id}`}
-                        className="mt-3 w-full block text-center px-4 py-3 border-2 border-gray-300 text-gray-900 rounded-xl font-bold hover:bg-gray-50 transition-all"
+                      <button
+                        onClick={() => handleOpenDetailsModal(agent)}
+                        className="mt-3 w-full px-4 py-3 border-2 border-gray-300 text-gray-900 rounded-xl font-bold hover:bg-gray-50 transition-all flex items-center justify-center gap-2"
                       >
-                        <Eye className="h-4 w-4 inline mr-2" />
+                        <Eye className="h-4 w-4" />
                         Ver Detalles
-                      </Link>
+                      </button>
                     </div>
                   </div>
                 ))}
@@ -481,6 +494,217 @@ export default function MyAgents() {
                     className="w-full px-6 py-3 border-2 border-gray-300 text-gray-900 rounded-xl font-bold hover:bg-gray-50 transition-all"
                   >
                     Cancelar
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Detalles del Agente */}
+      {isDetailsModalOpen && selectedAgent && (
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          <div 
+            className="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm transition-opacity"
+            onClick={handleCloseDetailsModal}
+          />
+          
+          <div className="flex min-h-screen items-center justify-center p-4">
+            <div className="relative bg-white rounded-2xl shadow-2xl max-w-4xl w-full mx-auto transform transition-all">
+              
+              {/* Header del Modal */}
+              <div className="relative bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 rounded-t-2xl p-8 text-white">
+                <button
+                  title='Cerrar modal'
+                  onClick={handleCloseDetailsModal}
+                  className="absolute top-4 right-4 p-2 hover:bg-white/20 rounded-full transition-colors"
+                >
+                  <XCircle className="h-6 w-6 text-white" />
+                </button>
+                
+                <div className="flex items-start gap-6">
+                  <div className="w-24 h-24 rounded-xl bg-white flex items-center justify-center overflow-hidden shadow-lg">
+                    <Bot className="h-12 w-12 text-blue-600" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-2 flex-wrap">
+                      <h2 className="text-3xl font-bold text-white">{selectedAgent.name}</h2>
+                      <span className="bg-white text-blue-700 px-3 py-1 rounded-full text-sm font-bold">
+                        {selectedAgent.category}
+                      </span>
+                      {selectedAgent.available ? (
+                        <span className="bg-green-500 text-white px-3 py-1 rounded-full text-sm font-bold flex items-center gap-1">
+                          <CheckCircle className="h-4 w-4" />
+                          Activo
+                        </span>
+                      ) : (
+                        <span className="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold flex items-center gap-1">
+                          <XCircle className="h-4 w-4" />
+                          Inactivo
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-4 text-white flex-wrap">
+                      <div className="flex items-center gap-1 bg-white/20 px-3 py-1 rounded-full">
+                        <Star className="h-5 w-5 fill-current text-yellow-300" />
+                        <span className="font-bold">{selectedAgent.score.toString()}</span>
+                      </div>
+                      <div className="flex items-center gap-1 bg-white/20 px-3 py-1 rounded-full">
+                        <Calendar className="h-5 w-5" />
+                        <span className="font-semibold">{formatDate(selectedAgent.createdAt)}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Contenido del Modal */}
+              <div className="p-8 max-h-[70vh] overflow-y-auto">
+                
+                {/* Precios destacados */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                  <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl p-6 border-2 border-blue-200 shadow-sm">
+                    <p className="text-sm font-semibold text-gray-700 mb-1"> Precio Base</p>
+                    <p className="text-4xl font-bold text-blue-700">
+                      {formatEther(selectedAgent.basePrice)}
+                    </p>
+                    <p className="text-lg font-bold text-blue-600 mt-1">AVAX</p>
+                  </div>
+                  <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-6 border-2 border-purple-200 shadow-sm">
+                    <p className="text-sm font-semibold text-gray-700 mb-1"> Costo por Segundo</p>
+                    <div className="flex items-baseline gap-2">
+                      <p className="text-3xl font-bold text-purple-700">
+                        {formatPricePerSecond(selectedAgent.pricePerSecond).value}
+                      </p>
+                      <p className="text-base font-bold text-purple-600">
+                        {formatPricePerSecond(selectedAgent.pricePerSecond).unit}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Descripción */}
+                <div className="mb-6 bg-gray-50 rounded-xl p-6 border border-gray-200">
+                  <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <div className="w-1.5 h-8 bg-gradient-to-b from-blue-600 to-purple-600 rounded-full" />
+                    Descripción Completa
+                  </h3>
+                  <p className="text-gray-800 leading-relaxed text-base">{selectedAgent.description}</p>
+                </div>
+
+                {/* Capacidades y Tags */}
+                <div className="mb-6">
+                  <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <div className="w-1.5 h-8 bg-gradient-to-b from-blue-600 to-purple-600 rounded-full" />
+                    Capacidades y Especialidades
+                  </h3>
+                  <div className="flex flex-wrap gap-3">
+                    {selectedAgent.tags.map((tag: string) => (
+                      <span 
+                        key={tag} 
+                        className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-5 py-2.5 rounded-full text-sm font-bold shadow-md hover:shadow-lg transition-shadow"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Información Técnica */}
+                <div className="mb-6">
+                  <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <div className="w-1.5 h-8 bg-gradient-to-b from-blue-600 to-purple-600 rounded-full" />
+                    Información Técnica
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="bg-white rounded-lg p-5 border-2 border-gray-200 shadow-sm">
+                      <p className="text-sm font-bold text-gray-600 mb-2"> ID del Agente</p>
+                      <p className="text-xl font-bold text-blue-700">#{selectedAgent.id.toString()}</p>
+                    </div>
+                    <div className="bg-white rounded-lg p-5 border-2 border-gray-200 shadow-sm">
+                      <p className="text-sm font-bold text-gray-600 mb-2"> Propietario (Tú)</p>
+                      <p className="text-base font-mono font-bold text-gray-900 bg-gray-100 px-3 py-2 rounded break-all">
+                        {selectedAgent.owner.slice(0, 8)}...{selectedAgent.owner.slice(-6)}
+                      </p>
+                    </div>
+                    <div className="bg-white rounded-lg p-5 border-2 border-gray-200 shadow-sm">
+                      <p className="text-sm font-bold text-gray-600 mb-2"> Estado Actual</p>
+                      <div className="flex items-center gap-2">
+                        {selectedAgent.available ? (
+                          <>
+                            <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                            <p className="text-base font-bold text-green-700">Activo</p>
+                          </>
+                        ) : (
+                          <>
+                            <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                            <p className="text-base font-bold text-red-700">Inactivo</p>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                    <div className="bg-white rounded-lg p-5 border-2 border-gray-200 shadow-sm">
+                      <p className="text-sm font-bold text-gray-600 mb-2"> Puntuación</p>
+                      <div className="flex items-center gap-2">
+                        <Star className="h-5 w-5 text-yellow-500 fill-current" />
+                        <p className="text-xl font-bold text-yellow-600">{selectedAgent.score.toString()} / 100</p>
+                      </div>
+                    </div>
+                    <div className="bg-white rounded-lg p-5 border-2 border-gray-200 shadow-sm">
+                      <p className="text-sm font-bold text-gray-600 mb-2"> Fecha de Creación</p>
+                      <p className="text-sm font-bold text-gray-900">{formatDate(selectedAgent.createdAt)}</p>
+                    </div>
+                    <div className="bg-white rounded-lg p-5 border-2 border-gray-200 shadow-sm">
+                      <p className="text-sm font-bold text-gray-600 mb-2"> Blockchain</p>
+                      <p className="text-base font-bold text-red-600">Avalanche Fuji</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Hash IPFS */}
+                <div className="mb-6 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl p-6 border-2 border-indigo-200">
+                  <h3 className="text-lg font-bold text-gray-900 mb-3 flex items-center gap-2">
+                     Hash IPFS
+                  </h3>
+                  <p className="text-sm font-mono font-bold text-indigo-700 bg-white px-4 py-3 rounded-lg break-all border border-indigo-200">
+                    {selectedAgent.ipfsHash}
+                  </p>
+                </div>
+
+                {/* Botones de Acción */}
+                <div className="flex gap-3 pt-4 border-t-2 border-gray-200">
+                  <button
+                    onClick={() => {
+                      handleCloseDetailsModal()
+                      handleOpenEditModal(selectedAgent)
+                    }}
+                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-bold transition-all flex items-center justify-center gap-2"
+                  >
+                    <Edit className="h-5 w-5" />
+                    Editar Precios
+                  </button>
+                  
+                  <button
+                    onClick={() => handleToggleAvailability(selectedAgent)}
+                    disabled={isTogglingAvailability || isConfirmingAvailability}
+                    className={`flex-1 px-6 py-3 rounded-xl font-bold transition-all flex items-center justify-center gap-2 ${
+                      isTogglingAvailability || isConfirmingAvailability
+                        ? 'bg-gray-400 text-white cursor-not-allowed'
+                        : selectedAgent.available
+                        ? 'bg-red-500 hover:bg-red-600 text-white'
+                        : 'bg-green-500 hover:bg-green-600 text-white'
+                    }`}
+                  >
+                    <Power className="h-5 w-5" />
+                    {selectedAgent.available ? 'Desactivar' : 'Activar'}
+                  </button>
+                  
+                  <button
+                    onClick={handleCloseDetailsModal}
+                    className="px-6 py-3 border-2 border-gray-400 text-gray-900 rounded-xl font-bold hover:bg-gray-100 transition-all"
+                  >
+                    Cerrar
                   </button>
                 </div>
               </div>
